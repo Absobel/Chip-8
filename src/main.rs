@@ -5,7 +5,7 @@ mod display;
 mod screen;
 use memory::Memory;
 use stack::Stack;
-use screen::{Screen, Pixel};
+use screen::Screen;
 
 use std::{
     time::{Duration, Instant},
@@ -13,6 +13,18 @@ use std::{
     sync::{Arc, Mutex},
 };
 use rand::Rng;
+
+const ROM_PATH: &str = "roms/programs/Framed MK1 [GV Samways, 1980].ch8";
+const IPS : u64 = 700; // instructions per second
+
+const FONT_ADRESS: u16 = 0x50;
+
+const DEBUG: bool = true;
+
+const CB_8XY_ : CB = CB::NEW;   // NEW : does not                           |||| OLD : + Set VX to the value of VY
+const CB_B_NN : CB = CB::NEW;   // NEW : Jump to adress NNN + VX            |||| OLD : Jump to the address NNN plus V0.
+const CB_FX1E : CB = CB::NEW;   // NEW : + If I overlfow the memory, VF = 1 |||| OLD : does not
+const CB_FX_5 : CB = CB::NEW;   // NEW : is not                             |||| OLD : I is incremented 
 
 fn load_font(memory: &mut Memory) {
     let fontset: [u8; 80] = [
@@ -34,22 +46,15 @@ fn load_font(memory: &mut Memory) {
         0xF0, 0x80, 0xF0, 0x80, 0x80, // F
     ];
     for (i,byte) in fontset.iter().enumerate() {
-        memory.write(i as u16 + 0x050, *byte);
+        memory.write(i as u16 + FONT_ADRESS, *byte);
     }
 }
 
 #[derive(PartialEq)]
-enum CommandBehavior {
+enum CB {
     NEW,
     OLD,
 }
-const CB_8XY6 : CommandBehavior = CommandBehavior::NEW;
-const CB_8XYE : CommandBehavior = CommandBehavior::NEW;
-const CB_BNNN : CommandBehavior = CommandBehavior::NEW;
-const CB_FX55 : CommandBehavior = CommandBehavior::NEW;
-const CB_FX65 : CommandBehavior = CommandBehavior::NEW;
-
-const IPS : u64 = 1; // instructions per second
 
 fn main() {
     let mut screen = Screen::new();
@@ -57,13 +62,13 @@ fn main() {
     //display::display().unwrap();
     // Init memory
     let mut memory: Memory = Memory::new();
-    memory.load_rom("roms/IBM Logo.ch8").unwrap();
+    memory.load_rom(ROM_PATH).unwrap();
     load_font(&mut memory);
 
-    let I_adr: u16 = 0x0FFE;                           // Index register
+    let I_adr: u16 = 0xFFE;                           // Index register
     let mut V_adr: [u16; 16] = [0; 16];                // Registers V0 to VF 
     for i in 0..16 {
-        V_adr[i] = 0x0FEE + i as u16;
+        V_adr[i] = 0xFEE + i as u16;
     }
     
     let timer_adr = 0x0FED;                       // Timer register
@@ -106,6 +111,7 @@ fn main() {
 
 
     // game loop
+    println!("");
     println!(" adr  | instr  | effect");
     println!("------+--------+--------------------------------");
     loop { 
@@ -123,12 +129,12 @@ fn main() {
                 match instruction {
                     // Clear screen
                     0x00E0 => {
-                        println!("0x{:03X} | 0x{:04X} | Screen clearing", pc-2, instruction);
+                        if DEBUG {println!("0x{:03X} | 0x{:04X} | Screen clearing", pc-2, instruction);}
                         screen.clear();
                     }
                     // Return from subroutine
                     0x00EE => {
-                        println!("0x{:03X} | 0x{:04X} | Returning from subroutine", pc-2, instruction);
+                        if DEBUG {println!("0x{:03X} | 0x{:04X} | Returning from subroutine", pc-2, instruction);}
                         pc = stack.pop().unwrap();
                     }
                     _ => {
@@ -141,19 +147,20 @@ fn main() {
             1 => {
                 // 0x1NNN jump to adress 0xNNN
                 let NNN = instruction & 0x0FFF;
-                println!("0x{:03X} | 0x{:04X} | Jumping to adress 0x{:03X}", pc-2, instruction, NNN);
+                if DEBUG {println!("0x{:03X} | 0x{:04X} | Jumping to adress 0x{:03X}", pc-2, instruction, NNN);}
                 pc = NNN;
             }
             2 => {
                 // 0x2NNN call subroutine at 0xNNN
                 let NNN = instruction & 0x0FFF;
-                println!("0x{:03X} | 0x{:04X} | Calling subroutine at 0x{:03X}", pc-2, instruction, NNN);
+                if DEBUG {println!("0x{:03X} | 0x{:04X} | Calling subroutine at 0x{:03X}", pc-2, instruction, NNN);}
                 stack.push(pc);
                 pc = NNN;
                 
             }
-            3 => {
+            3 | 4 => {
                 // 0x3XNN skip next instruction if VX == NN
+                // 0x4XNN skip next instruction if VX != NN
                 let X = (instruction & 0x0F00) >> 8;
                 let NN = instruction & 0x00FF;
 
@@ -161,30 +168,23 @@ fn main() {
                 let VX = guard.read(V_adr[X as usize]);
                 std::mem::drop(guard);
 
-                if VX == NN as u8 {
-                    println!("0x{:03X} | 0x{:04X} | Skipping next instruction because V{:X} == 0x{:02X}", pc-2, instruction, X, NN);
-                    pc += 2;
-                } else {
-                    println!("0x{:03X} | 0x{:04X} | Not skipping next instruction because V{:X} != 0x{:02X}", pc-2, instruction, X, NN);
+                if opcode == 3 {
+                    if VX == NN as u8 {
+                        if DEBUG {println!("0x{:03X} | 0x{:04X} | Skipping next instruction because V{:X} == 0x{:02X}", pc-2, instruction, X, NN);}
+                        pc += 2;
+                    } else {
+                        if DEBUG {println!("0x{:03X} | 0x{:04X} | Not skipping next instruction because V{:X} != 0x{:02X}", pc-2, instruction, X, NN);}
+                    }
+                } else if opcode == 4 {
+                    if VX != NN as u8 {
+                        if DEBUG {println!("0x{:03X} | 0x{:04X} | Skipping next instruction because V{:X} != 0x{:02X}", pc-2, instruction, X, NN);}
+                        pc += 2;
+                    } else {
+                        if DEBUG {println!("0x{:03X} | 0x{:04X} | Not skipping next instruction because V{:X} == 0x{:02X}", pc-2, instruction, X, NN);}
+                    }
                 }
             }
-            4 => {
-                // 0x4XNN skip next instruction if VX == NN
-                let X = (instruction & 0x0F00) >> 8;
-                let NN = (instruction & 0x00FF) as u8;
-
-                let guard = mutex_memory.lock().unwrap();
-                let VX = guard.read(V_adr[X as usize]);
-                std::mem::drop(guard);
-
-                if VX != NN {
-                    println!("0x{:03X} | 0x{:04X} | Skipping next instruction because V{:X} != 0x{:02X}", pc-2, instruction, X, NN);
-                    pc += 2;
-                } else {
-                    println!("0x{:03X} | 0x{:04X} | Not skipping next instruction because V{:X} == 0x{:02X}", pc-2, instruction, X, NN);
-                }
-            }
-            5 => {
+            5 | 9 => {
                 if instruction & 0x000F == 0 {
                     // 0x5XY0 skip next instruction if VX == VY
                     let X = (instruction & 0x0F00) >> 8;
@@ -195,13 +195,21 @@ fn main() {
                     let VY = guard.read(V_adr[Y as usize]);
                     std::mem::drop(guard);
 
-                    if VX == VY {
-                        println!("0x{:03X} | 0x{:04X} | Skipping next instruction because V{:X} == V{:X}", pc-2, instruction, X, Y);
-                        pc += 2;
-                    } else {
-                        println!("0x{:03X} | 0x{:04X} | Not skipping next instruction because V{:X} != V{:X}", pc-2, instruction, X, Y);
+                    if opcode == 5 {
+                        if VX == VY {
+                            if DEBUG {println!("0x{:03X} | 0x{:04X} | Skipping next instruction because V{:X} == V{:X}", pc-2, instruction, X, Y);}
+                            pc += 2;
+                        } else {
+                            if DEBUG {println!("0x{:03X} | 0x{:04X} | Not skipping next instruction because V{:X} != V{:X}", pc-2, instruction, X, Y);}
+                        }
+                    } else if opcode == 9 {
+                        if VX != VY {
+                            if DEBUG {println!("0x{:03X} | 0x{:04X} | Skipping next instruction because V{:X} != V{:X}", pc-2, instruction, X, Y);}
+                            pc += 2;
+                        } else {
+                            if DEBUG {println!("0x{:03X} | 0x{:04X} | Not skipping next instruction because V{:X} == V{:X}", pc-2, instruction, X, Y);}
+                        }
                     }
-                    
                 }
                 else {
                     println!("0x{:03X} | 0x{:04X} | Non used instruction", pc-2, instruction);
@@ -212,21 +220,21 @@ fn main() {
                 // 0x6XNN set register VX to 0xNN
                 let X = (instruction & 0x0F00) >> 8;
                 let NN = instruction & 0x00FF;
-                println!("0x{:03X} | 0x{:04X} | Setting register V{:01X} to 0x{:02X}", pc-2, instruction, X, NN);
+                if DEBUG {println!("0x{:03X} | 0x{:04X} | Setting register V{:01X} to 0x{:02X}", pc-2, instruction, X, NN);}
 
                 let mut guard = mutex_memory.lock().unwrap();
                 guard.write(V_adr[X as usize], NN as u8);
                 std::mem::drop(guard);
             }
             7 => {
-                // 0x7XNN add 0xNN to register VX
-                let X = ((instruction & 0x0F00) >> 2) as usize;
+                // 0x7XNN add 0xNN to register VX (carry flag is not changed)
+                let X = ((instruction & 0x0F00) >> 8) as usize;
                 let NN = (instruction & 0x00FF) as usize;
-                println!("0x{:03X} | 0x{:04X} | Adding 0x{:02X} to register V{:01X}", pc-2, instruction, NN, X);
+                if DEBUG {println!("0x{:03X} | 0x{:04X} | Adding 0x{:02X} to register V{:01X}", pc-2, instruction, NN, X);}
 
                 let mut guard = mutex_memory.lock().unwrap();
-                let value = guard.read(V_adr[X]);
-                guard.write(V_adr[X], ((value as usize + NN) % 255) as u8);
+                let VX = guard.read(V_adr[X]);
+                guard.write(V_adr[X], ((VX as usize + NN) % 255) as u8);
                 std::mem::drop(guard);
             }
             0x8 => {
@@ -235,86 +243,81 @@ fn main() {
                         // 0x8XY0 set VX to VY
                         let X = (instruction & 0x0F00) >> 8;
                         let Y = (instruction & 0x00F0) >> 4;
-                        println!("0x{:03X} | 0x{:04X} | Setting register V{:01X} to V{:01X}", pc-2, instruction, X, Y);
+                        if DEBUG {println!("0x{:03X} | 0x{:04X} | Setting register V{:01X} to V{:01X}", pc-2, instruction, X, Y);}
 
                         let mut guard = mutex_memory.lock().unwrap();
-                        let value = guard.read(V_adr[Y as usize]);
-                        guard.write(V_adr[X as usize], value);
+                        let VY = guard.read(V_adr[Y as usize]);
+                        guard.write(V_adr[X as usize], VY);
                         std::mem::drop(guard);
                     }
-                    1 => {
+                    1 | 2 | 3 => {
                         // 0x8XY1 set VX to VX | VY
+                        // 0x8XY2 set VX to VX & VY
+                        // 0x8XY3 set VX to VX ^ VY
                         let X = (instruction & 0x0F00) >> 8;
                         let Y = (instruction & 0x00F0) >> 4;
-                        println!("0x{:03X} | 0x{:04X} | Setting register V{:01X} to V{:01X} | V{:01X}", pc-2, instruction, X, X, Y);
 
                         let mut guard = mutex_memory.lock().unwrap();
                         let VX = guard.read(V_adr[X as usize]);
                         let VY = guard.read(V_adr[Y as usize]);
+                        match instruction & 0x000F {
+                            1 => {
+                                if DEBUG {println!("0x{:03X} | 0x{:04X} | Setting register V{:01X} to V{:01X} | V{:01X}", pc-2, instruction, X, X, Y);
+                                guard.write(V_adr[X as usize], VX | VY);}
+                            }
+                            2 => {
+                                if DEBUG {println!("0x{:03X} | 0x{:04X} | Setting register V{:01X} to V{:01X} & V{:01X}", pc-2, instruction, X, X, Y);
+                                guard.write(V_adr[X as usize], VX & VY);}
+                            }
+                            3 => {
+                                if DEBUG {println!("0x{:03X} | 0x{:04X} | Setting register V{:01X} to V{:01X} ^ V{:01X}", pc-2, instruction, X, X, Y);
+                                guard.write(V_adr[X as usize], VX ^ VY);}
+                            }
+                            _ => unreachable!(),
+                        }
                         guard.write(V_adr[X as usize], VX | VY);
                         std::mem::drop(guard);
                     }
-                    2 => {
-                        // 0x8XY1 set VX to VX & VY
-                        let X = (instruction & 0x0F00) >> 8;
-                        let Y = (instruction & 0x00F0) >> 4;
-                        println!("0x{:03X} | 0x{:04X} | Setting register V{:01X} to V{:01X} & V{:01X}", pc-2, instruction, X, X, Y);
-
-                        let mut guard = mutex_memory.lock().unwrap();
-                        let VX = guard.read(V_adr[X as usize]);
-                        let VY = guard.read(V_adr[Y as usize]);
-                        guard.write(V_adr[X as usize], VX & VY);
-                        std::mem::drop(guard);
-                    }
-                    3 => {
-                        // 0x8XY1 set VX to VX ^ VY
-                        let X = (instruction & 0x0F00) >> 8;
-                        let Y = (instruction & 0x00F0) >> 4;
-                        println!("0x{:03X} | 0x{:04X} | Setting register V{:01X} to V{:01X} ^ V{:01X}", pc-2, instruction, X, X, Y);
-
-                        let mut guard = mutex_memory.lock().unwrap();
-                        let VX = guard.read(V_adr[X as usize]);
-                        let VY = guard.read(V_adr[Y as usize]);
-                        guard.write(V_adr[X as usize], VX ^ VY);
-                        std::mem::drop(guard);
-                    }
-                    4 => {
+                    4 | 5 | 7 => {
                         // 0x8XY4 Add VY to VX. VF is set to 1 when there's a carry, and to 0 when there isn't
                         let X = (instruction & 0x0F00) >> 8;
                         let Y = (instruction & 0x00F0) >> 4;
-                        println!("0x{:03X} | 0x{:04X} | Adding V{:01X} to V{:01X} with carry flag to VF", pc-2, instruction, Y, X);
 
                         let mut guard = mutex_memory.lock().unwrap();
                         let VX = guard.read(V_adr[X as usize]);
                         let VY = guard.read(V_adr[Y as usize]);
-                        let result = VX as usize + VY as usize;
-                        if result > 255 {
-                            guard.write(V_adr[0xF], 1);
-                        } else {
-                            guard.write(V_adr[0xF], 0);
+                        match instruction & 0x000F {
+                            4 => {
+                                if DEBUG {println!("0x{:03X} | 0x{:04X} | Adding V{:01X} to V{:01X} with carry flag to VF", pc-2, instruction, Y, X);}
+                                let result = VX as usize + VY as usize;
+                                if result > 255 {
+                                    guard.write(V_adr[0xF], 1);
+                                } else {
+                                    guard.write(V_adr[0xF], 0);
+                                }
+                                guard.write(V_adr[X as usize], (result % 255) as u8);
+                            }
+                            5 | 7 => {
+                                let (VX,VY) = if instruction & 0x000F == 5 {
+                                    if DEBUG {println!("0x{:03X} | 0x{:04X} | Subtracting V{:01X} from V{:01X} with borrow flag to VF", pc-2, instruction, Y, X);}
+                                    (VX,VY)
+                                } else {
+                                    if DEBUG {println!("0x{:03X} | 0x{:04X} | Subtracting V{:01X} from V{:01X} with borrow flag to VF", pc-2, instruction, X, Y);}
+                                    (VY,VX)
+                                };
+                                let result = VX as isize - VY as isize;
+                                if result < 0 {
+                                    guard.write(V_adr[0xF], 0);
+                                } else {
+                                    guard.write(V_adr[0xF], 1);
+                                }
+                                guard.write(V_adr[X as usize], (result % 255) as u8);
+                            }
+                            _ => unreachable!(),
                         }
-                        guard.write(V_adr[X as usize], (result % 255) as u8);
                         std::mem::drop(guard);
                     }
-                    5 => {
-                        // 0x8XY4 Substract VY to VX. VF is set to 1 if VX > VY, and to 0 if not
-                        let X = (instruction & 0x0F00) >> 8;
-                        let Y = (instruction & 0x00F0) >> 4;
-                        println!("0x{:03X} | 0x{:04X} | Substracting V{:01X} to V{:01X} with borrow flag to VF", pc-2, instruction, Y, X);
-
-                        let mut guard = mutex_memory.lock().unwrap();
-                        let VX = guard.read(V_adr[X as usize]);
-                        let VY = guard.read(V_adr[Y as usize]);
-                        let result = VX as isize - VY as isize;
-                        if result > 0 {
-                            guard.write(V_adr[0xF], 0);
-                        } else {
-                            guard.write(V_adr[0xF], 1);
-                        }
-                        guard.write(V_adr[X as usize], (result % 255) as u8);
-                        std::mem::drop(guard);
-                    }
-                    6 => {
+                    6 | 0xE => {
                         // 0x8XY6
                         let X = (instruction & 0x0F00) >> 8;
                         let Y = (instruction & 0x00F0) >> 4;
@@ -324,54 +327,27 @@ fn main() {
                         let VY = guard.read(V_adr[Y as usize]);
                         guard.write(V_adr[0xF], VX & 0x1);
 
-                        if CB_8XY6 == CommandBehavior::OLD {
-                            // VX is set to VY and shifted right by 1. VF is set to the bit shifted out
-                            println!("0x{:03X} | 0x{:04X} | Setting V{:01X} to V{:01X} and shifting it right by 1 with bit shifted out to VF", pc-2, instruction, X, Y);
-                            guard.write(V_adr[X as usize], VY >> 1);
-                        } else if CB_8XY6 == CommandBehavior::NEW {
-                            // VX is shifted right by 1. VF is set to the bit shifted out
-                            println!("0x{:03X} | 0x{:04X} | Shifting V{:01X} right by 1 with bit shifted out to VF", pc-2, instruction, X);
-                            guard.write(V_adr[X as usize], VX >> 1);
-                        } else {}
-                        std::mem::drop(guard);
-                    }
-                    7 => {
-                        // 0x8XY4 Substract VX to VY. VF is set to 1 if VY > VX, and to 0 if not
-                        let X = (instruction & 0x0F00) >> 8;
-                        let Y = (instruction & 0x00F0) >> 4;
-                        println!("0x{:03X} | 0x{:04X} | Substracting V{:01X} to V{:01X} with borrow flag to VF", pc-2, instruction, X, Y);
-
-                        let mut guard = mutex_memory.lock().unwrap();
-                        let VX = guard.read(V_adr[X as usize]);
-                        let VY = guard.read(V_adr[Y as usize]);
-                        let result = VY as isize - VX as isize;
-                        if result > 0 {
-                            guard.write(V_adr[0xF], 0);
-                        } else {
-                            guard.write(V_adr[0xF], 1);
+                        if instruction & 0x000F == 6 {
+                            if CB_8XY_ == CB::OLD {
+                                // VX is set to VY and shifted right by 1. VF is set to the bit shifted out
+                                if DEBUG {println!("0x{:03X} | 0x{:04X} | Setting V{:01X} to V{:01X} and shifting it right by 1 with bit shifted out to VF", pc-2, instruction, X, Y);}
+                                guard.write(V_adr[X as usize], VY >> 1);
+                            } else if CB_8XY_ == CB::NEW {
+                                // VX is shifted right by 1. VF is set to the bit shifted out
+                                if DEBUG {println!("0x{:03X} | 0x{:04X} | Shifting V{:01X} right by 1 with bit shifted out to VF", pc-2, instruction, X);}
+                                guard.write(V_adr[X as usize], VX >> 1);
+                            }
+                        } else if instruction & 0x000F == 0xE {
+                            if CB_8XY_ == CB::OLD {
+                                // VX is set to VY and shifted left by 1. VF is set to the bit shifted out
+                                if DEBUG {println!("0x{:03X} | 0x{:04X} | Setting V{:01X} to V{:01X} and shifting it left by 1 with bit shifted out to VF", pc-2, instruction, X, Y);}
+                                guard.write(V_adr[X as usize], VY << 1);
+                            } else if CB_8XY_ == CB::NEW {
+                                // VX is shifted left by 1. VF is set to the bit shifted out
+                                if DEBUG {println!("0x{:03X} | 0x{:04X} | Shifting V{:01X} left by 1 with bit shifted out to VF", pc-2, instruction, X);}
+                                guard.write(V_adr[X as usize], VX << 1);
+                            }
                         }
-                        guard.write(V_adr[X as usize], (result % 255) as u8);
-                        std::mem::drop(guard);
-                    }
-                    0xE => {
-                        // 0x8XYE
-                        let X = (instruction & 0x0F00) >> 8;
-                        let Y = (instruction & 0x00F0) >> 4;
-
-                        let mut guard = mutex_memory.lock().unwrap();
-                        let VX = guard.read(V_adr[X as usize]);
-                        let VY = guard.read(V_adr[Y as usize]);
-                        guard.write(V_adr[0xF], VX & 0x1);
-
-                        if CB_8XYE == CommandBehavior::OLD {
-                            // VX is set to VY and shifted right by 1. VF is set to the bit shifted out
-                            println!("0x{:03X} | 0x{:04X} | Setting V{:01X} to V{:01X} and shifting it right by 1 with bit shifted out to VF", pc-2, instruction, X, Y);
-                            guard.write(V_adr[X as usize], VY << 1);
-                        } else if CB_8XYE == CommandBehavior::NEW {
-                            // VX is shifted right by 1. VF is set to the bit shifted out
-                            println!("0x{:03X} | 0x{:04X} | Shifting V{:01X} right by 1 with bit shifted out to VF", pc-2, instruction, X);
-                            guard.write(V_adr[X as usize], VX << 1);
-                        } else {}
                         std::mem::drop(guard);
                     }
                     _ => {
@@ -380,68 +356,44 @@ fn main() {
                     }
                 }
             }
-            9 => {
-                if instruction & 0x000F == 0 {
-                    // 0x9XY0 skip next instruction if VX != VY
-                    let X = (instruction & 0x0F00) >> 8;
-                    let Y = (instruction & 0x00F0) >> 4;
-
-                    let guard = mutex_memory.lock().unwrap();
-                    let VX = guard.read(V_adr[X as usize]);
-                    let VY = guard.read(V_adr[Y as usize]);
-                    std::mem::drop(guard);
-
-                    if VX != VY {
-                        println!("0x{:03X} | 0x{:04X} | Skipping next instruction because V{:X} != V{:X}", pc-2, instruction, X, Y);
-                        pc += 2;
-                    } else {
-                        println!("0x{:03X} | 0x{:04X} | Not skipping next instruction because V{:X} == V{:X}", pc-2, instruction, X, Y);
-                    }
-                    
-                }
-                else {
-                    println!("0x{:03X} | 0x{:04X} | Non used instruction", pc-2, instruction);
-                    break;
-                }
-            }
             0xA => {
                 // 0xANNN set I to 0x0NNN
                 let NNN = instruction & 0x0FFF;
-                println!("0x{:03X} | 0x{:04X} | Setting I to 0x{:03X}", pc-2, instruction, NNN);
+                if DEBUG {println!("0x{:03X} | 0x{:04X} | Setting I to 0x{:03X}", pc-2, instruction, NNN);}
 
                 let mut guard = mutex_memory.lock().unwrap();
                 guard.write_word(I_adr, NNN);
                 std::mem::drop(guard);
             }
             0xB => {
-                if CB_BNNN == CommandBehavior::OLD {
+                if CB_B_NN == CB::OLD {
                     // 0xBNNN jump to 0x0NNN + V0
                     let NNN = instruction & 0x0FFF;
-                    println!("0x{:03X} | 0x{:04X} | Jumping to 0x{:03X} + V0", pc-2, instruction, NNN);
+                    if DEBUG {println!("0x{:03X} | 0x{:04X} | Jumping to 0x{:03X} + V0", pc-2, instruction, NNN);}
 
                     let guard = mutex_memory.lock().unwrap();
                     let V0 = guard.read(V_adr[0]);
                     std::mem::drop(guard);
 
                     pc = NNN + V0 as u16;
-                } else if CB_BNNN == CommandBehavior::NEW {
+                } else if CB_B_NN == CB::NEW {
                     // 0xBXNN jump to 0xXNN + VX
                     let X = ((instruction & 0x0F00) >> 8) as u8;
                     let XNN = instruction & 0x0FFF;
-                    println!("0x{:03X} | 0x{:04X} | Jumping to 0x{:03X} + V{:01X}", pc-2, instruction, XNN, X);
+                    if DEBUG {println!("0x{:03X} | 0x{:04X} | Jumping to 0x{:03X} + V{:01X}", pc-2, instruction, XNN, X);}
     
                     let guard = mutex_memory.lock().unwrap();
-                    let val_VX = guard.read(V_adr[X as usize]);
+                    let VX = guard.read(V_adr[X as usize]);
                     std::mem::drop(guard);
     
-                    pc = XNN + val_VX as u16;
+                    pc = XNN + VX as u16;
                 } else {}
             }
             0xC => {
                 // 0xCXNN set VX to random number and binary-AND's it with NN
                 let X = (instruction & 0x0F00) >> 8;
                 let NN = instruction & 0x00FF;
-                println!("0x{:03X} | 0x{:04X} | Setting V{:01X} to random number and binary-AND's it with 0x{:02X}", pc-2, instruction, X, NN);
+                if DEBUG {println!("0x{:03X} | 0x{:04X} | Setting V{:01X} to random number and binary-AND's it with 0x{:02X}", pc-2, instruction, X, NN);}
 
                 let mut rng = rand::thread_rng();
                 let random : u8 = rng.gen();
@@ -451,28 +403,67 @@ fn main() {
                 std::mem::drop(guard);
             }
             0xD => {
-                    // 0xDXYN display
-                    println!("0x{:03X} | 0x{:04X} | Displaying", pc-2, instruction);
+                    // 0xDXYN display sprite at (VX, VY) with width 8 and height N
                     let X = ((instruction & 0x0F00) >> 8) as usize;
                     let Y = ((instruction & 0x00F0) >> 4) as usize;
                     let N = (instruction & 0x000F) as u8;
+                    if DEBUG {println!("0x{:03X} | 0x{:04X} | Displaying sprite at (V{:01X}, V{:01X}) with width 8 and height {:01X}", pc-2, instruction, X, Y, N);}
                     
-                    let guard = mutex_memory.lock().unwrap();
-                    let coord_X = guard.read(V_adr[X]) % 64;    
-                    let coord_Y = guard.read(V_adr[Y]) % 32;
+                    let mut guard = mutex_memory.lock().unwrap();
+                    let mut cX = guard.read(V_adr[X]) % 64;    // coord X
+                    let mut cY = guard.read(V_adr[Y]) % 32;    // coord Y
+                    let ccX = cX.clone();
+                    guard.write(V_adr[0xF], 0);
+
+                    'rows: for i in 0..N {
+                        let row = guard.read(guard.read_word(I_adr) + i as u16);
+                        'columns: for j in 0..8 {
+                            let pixel = (row >> (7-j)) & 0x1;
+                            if pixel == 1 {
+                                if screen.is_on(cX, cY) {
+                                    guard.write(V_adr[0xF], 1);
+                                    screen.set(cX, cY, false);
+                                } else {
+                                    screen.set(cX, cY, true);
+                                }
+                            }
+
+                            let new_cX = cX as usize + 1;
+                            if new_cX == 64 {
+                                break 'columns;
+                            } else {
+                                cX = new_cX as u8;
+                            }
+                        }
+                        cX = ccX.clone();
+                        let new_cY = cY as usize + 1;
+                        if new_cY == 32 {
+                            break 'rows;
+                        } else {
+                            cY = new_cY as u8;
+                        }
+                    }
                     std::mem::drop(guard);
 
-                    screen.debug_display();
+                    screen.debug_display();  // TEMPORARY
             }
             0xE => {
                 match instruction & 0x00FF {
-                    0x009E => {
-                        // 0xEX9E
-                        todo!()
-                    }
-                    0x00A1 => {
-                        // 0xEXA1
-                        todo!()
+                    0x009E | 0x00A1 => {
+                        // 0xEX9E skip next instruction if key with the value of VX is pressed
+                        // 0xEXA1 skip next instruction if key with the value of VX is not pressed
+                        let X = ((instruction & 0x0F00) >> 8) as usize;
+                        let guard = mutex_memory.lock().unwrap();
+                        let VX = guard.read(V_adr[X]);
+                        std::mem::drop(guard);
+
+                        if instruction & 0x00FF == 0x009E {
+                            if DEBUG {println!("0x{:03X} | 0x{:04X} | Skipping next instruction if key with the value of V{:01X} is pressed", pc-2, instruction, X);}
+                            println!("|\n|_"); todo!();
+                        } else if instruction & 0x00FF == 0x00A1 {
+                            if DEBUG {println!("0x{:03X} | 0x{:04X} | Skipping next instruction if key with the value of V{:01X} is not pressed", pc-2, instruction, X);}
+                            println!("|\n|_"); todo!();
+                        }
                     }
                     _ => {
                         println!("0x{:03X} | 0x{:04X} | Non used instruction", pc-2, instruction);
@@ -483,40 +474,103 @@ fn main() {
             0xF => {
                 match instruction & 0x00FF {
                     0x0007 => {
-                        // 0xFX07
-                        todo!();
+                        // 0xFX07 set VX to the value of the delay timer
+                        let X = ((instruction & 0x0F00) >> 8) as usize;
+                        if DEBUG {println!("0x{:03X} | 0x{:04X} | Setting V{:01X} to the value of the delay timer", pc-2, instruction, X);}
+
+                        let mut guard = mutex_memory.lock().unwrap();
+                        let timer_val = guard.read(timer_adr);
+                        guard.write(V_adr[X], timer_val);
+                        std::mem::drop(guard);
                     }
                     0x000A => {
-                        // 0xFX0A
-                        todo!();
+                        // 0xFX0A wait for a key press, store the value of the key in VX
+                        let X = ((instruction & 0x0F00) >> 8) as usize;
+                        if DEBUG {println!("0x{:03X} | 0x{:04X} | Waiting for a key press, storing the value of the key in V{:01X}", pc-2, instruction, X);}
+
+                        println!("|\n|_"); todo!();
                     }
-                    0x0015 => {
-                        // 0xFX0A
-                        todo!();
-                    }
-                    0x0018 => {
-                        // 0xFX18
-                        todo!();
+                    0x0015 | 0x0018 => {
+                        // 0xFX15 set the delay timer to VX
+                        // 0xFX18 set the sound timer to VX
+                        let X = ((instruction & 0x0F00) >> 8) as usize;
+
+                        let mut guard = mutex_memory.lock().unwrap();
+                        let VX = guard.read(V_adr[X]);
+                        let which_timer = if instruction & 0x00FF == 0x0015 {
+                            if DEBUG {println!("0x{:03X} | 0x{:04X} | Setting the delay timer to V{:01X}", pc-2, instruction, X);}
+                            timer_adr
+                        } else /* instruction & 0x00FF == 0x0018 */ {
+                            if DEBUG {println!("0x{:03X} | 0x{:04X} | Setting the sound timer to V{:01X}", pc-2, instruction, X);}
+                            sound_adr
+                        };
+                        guard.write(which_timer, VX);
+                        std::mem::drop(guard);
                     }
                     0x001E => {
-                        // 0xFX1E
-                        todo!();
+                        // 0xFX1E add VX to I with carry flag if CB_BNNN = NEW
+                        let X = ((instruction & 0x0F00) >> 8) as usize;
+                        
+                        let mut guard = mutex_memory.lock().unwrap();
+                        let VX = guard.read(V_adr[X]);
+                        let value = guard.read_word(I_adr) as usize + VX as usize;
+                        if CB_FX1E == CB::NEW && value > 0xFFF {
+                            if DEBUG {println!("0x{:03X} | 0x{:04X} | Adding V{:01X} to I with carry flag", pc-2, instruction, X);}
+                            guard.write(V_adr[0xF], 1);
+                        } else {
+                            if DEBUG {println!("0x{:03X} | 0x{:04X} | Adding V{:01X} to I", pc-2, instruction, X);}
+                            guard.write(V_adr[0xF], 0);
+                        } 
+                        guard.write_word(I_adr, (value % 0x1000) as u16);
+                        std::mem::drop(guard);
                     }
                     0x0029 => {
-                        // 0xFX29
-                        todo!();
+                        // 0xFX29 set I to the location of the sprite for the character in VX
+                        let X = ((instruction & 0x0F00) >> 8) as usize;
+                        if DEBUG {println!("0x{:03X} | 0x{:04X} | Setting I to the location of the sprite for the character in V{:01X}", pc-2, instruction, X);}
+
+                        let mut guard = mutex_memory.lock().unwrap();
+                        let char_0x = guard.read(V_adr[X]) & 0xF;
+                        guard.write_word(I_adr, char_0x as u16 + 50);
+                        std::mem::drop(guard);
                     }
                     0x0033 => {
-                        // 0xFX33
-                        todo!();
+                        // 0xFX33 store the binary-coded decimal representation of VX at the addresses I, I+1, and I+2
+                        let X = ((instruction & 0x0F00) >> 8) as usize;
+                        if DEBUG {println!("0x{:03X} | 0x{:04X} | Storing the binary-coded decimal representation of V{:01X} at the addresses I, I+1, and I+2", pc-2, instruction, X);}
+
+                        let mut guard = mutex_memory.lock().unwrap();
+                        let VX = guard.read(V_adr[X]);
+                        let (digit_1, digit_2, digit_3) = (VX / 100, (VX / 10) % 10, VX % 10);
+                        let I = guard.read_word(I_adr);
+                        guard.write(I, digit_1);
+                        guard.write(I + 1, digit_2);
+                        guard.write(I + 2, digit_3);
+                        std::mem::drop(guard);
                     }
-                    0x0055 => {
-                        // 0xFX55
-                        todo!();
-                    }
-                    0x0065 => {
-                        // 0xFX65
-                        todo!();
+                    0x0055 | 0x0065 => {
+                        // 0xFX55 store V0 to VX in memory starting at address I
+                        // 0xFX65 store memory to V0 to VX starting at address I
+                        let X = ((instruction & 0x0F00) >> 8) as usize;
+
+                        let mut guard = mutex_memory.lock().unwrap();
+                        let I = guard.read_word(I_adr);
+                        let mut new_I = I;
+                        for i in 0..X {
+                            if instruction & 0x00FF == 0x0055 {
+                                if DEBUG {println!("0x{:03X} | 0x{:04X} | Storing V{:01X} to V{:01X} in memory starting at address I", pc-2, instruction, 0, X);}
+                                let Vi = guard.read(V_adr[i]);
+                                guard.write(new_I, Vi);
+                            } else /* instruction & 0x00FF == 0x0065 */ {
+                                if DEBUG {println!("0x{:03X} | 0x{:04X} | Storing memory to V{:01X} to V{:01X} starting at address I", pc-2, instruction, 0, X);}
+                                let future_Vi = guard.read(new_I);
+                                guard.write(V_adr[i], future_Vi);
+                            }
+                            new_I += 1;
+                            if CB_FX_5 == CB::OLD {
+                                guard.write_word(I_adr, new_I);
+                            }
+                        }
                     }
                     _ => {
                         println!("0x{:03X} | 0x{:04X} | Non used instruction", pc-2, instruction);
@@ -525,8 +579,7 @@ fn main() {
                 }
             }
             _ => {
-                println!("0x{:03X} | 0x{:04X} | Non used opcode", pc-2, instruction);
-                break;
+                unreachable!();
             }
         }
 
