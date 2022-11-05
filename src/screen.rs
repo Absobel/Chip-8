@@ -1,4 +1,5 @@
-use super::DEBUG;
+#[path = "launch_options.rs"] mod launch_options;
+use launch_options::DEBUG;
 
 #[derive(Copy, Clone)]
 pub struct Pixel {

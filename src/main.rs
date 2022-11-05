@@ -3,9 +3,12 @@ mod memory;
 mod stack;
 mod display;
 mod screen;
+mod launch_options;
+
 use memory::Memory;
 use stack::Stack;
 use screen::Screen;
+use launch_options::*;
 
 use std::{
     time::{Duration, Instant},
@@ -14,49 +17,21 @@ use std::{
 };
 use rand::Rng;
 
-const ROM_PATH: &str = "roms/programs/Framed MK1 [GV Samways, 1980].ch8";
-const IPS : u64 = 700; // instructions per second
-
-const FONT_ADRESS: u16 = 0x50;
-
-const DEBUG: bool = true;
-
-const CB_8XY_ : CB = CB::NEW;   // NEW : does not                           |||| OLD : + Set VX to the value of VY
-const CB_B_NN : CB = CB::NEW;   // NEW : Jump to adress NNN + VX            |||| OLD : Jump to the address NNN plus V0.
-const CB_FX1E : CB = CB::NEW;   // NEW : + If I overlfow the memory, VF = 1 |||| OLD : does not
-const CB_FX_5 : CB = CB::NEW;   // NEW : is not                             |||| OLD : I is incremented 
 
 fn load_font(memory: &mut Memory) {
-    let fontset: [u8; 80] = [
-        0xF0, 0x90, 0x90, 0x90, 0xF0, // 0
-        0x20, 0x60, 0x20, 0x20, 0x70, // 1
-        0xF0, 0x10, 0xF0, 0x80, 0xF0, // 2
-        0xF0, 0x10, 0xF0, 0x10, 0xF0, // 3
-        0x90, 0x90, 0xF0, 0x10, 0x10, // 4
-        0xF0, 0x80, 0xF0, 0x10, 0xF0, // 5
-        0xF0, 0x80, 0xF0, 0x90, 0xF0, // 6
-        0xF0, 0x10, 0x20, 0x40, 0x40, // 7
-        0xF0, 0x90, 0xF0, 0x90, 0xF0, // 8
-        0xF0, 0x90, 0xF0, 0x10, 0xF0, // 9
-        0xF0, 0x90, 0xF0, 0x90, 0x90, // A
-        0xE0, 0x90, 0xE0, 0x90, 0xE0, // B
-        0xF0, 0x80, 0x80, 0x80, 0xF0, // C
-        0xE0, 0x90, 0x90, 0x90, 0xE0, // D
-        0xF0, 0x80, 0xF0, 0x80, 0xF0, // E
-        0xF0, 0x80, 0xF0, 0x80, 0x80, // F
-    ];
-    for (i,byte) in fontset.iter().enumerate() {
+    for (i,byte) in FONT_SET.iter().enumerate() {
         memory.write(i as u16 + FONT_ADRESS, *byte);
     }
 }
 
-#[derive(PartialEq)]
-enum CB {
-    NEW,
-    OLD,
-}
 
 fn main() {
+    // let args = env::args().collect::<Vec<String>>();                        // TODO
+    // if !args.is_empty() { 
+    //     let debug_str = args[1].clone();
+    //     let DEBUG = if debug_str == "true" { true } else { false };
+    // }
+
     let mut screen = Screen::new();
 
     //display::display().unwrap();
