@@ -1,11 +1,12 @@
 #![allow(dead_code)]
 
-pub const ROM_PATH: &str = "roms/programs/Random Number Test [Matthew Mikolay, 2010].ch8";
+pub const ROM_PATH: &str = "roms/games/Pong [Paul Vervalin, 1990].ch8";
 pub const IPS : u64 = 700; // instructions per second
 
 pub const FONT_ADRESS: u16 = 0x50;
 
-pub const DEBUG: bool = false;
+pub const DEBUG: bool = true;
+pub const TERMINAL: bool = false;
 
 pub const CB_8XY_ : CB = CB::NEW;   // NEW : does not                           |||| OLD : + Set VX to the value of VY
 pub const CB_B_NN : CB = CB::NEW;   // NEW : Jump to adress NNN + VX            |||| OLD : Jump to the address NNN plus V0.

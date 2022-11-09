@@ -7,7 +7,7 @@ pub struct Pixel {
 }
 
 pub struct Screen {
-    pixels: [[Pixel; 64]; 32]
+    pub pixels: [[Pixel; 64]; 32]
 }
 
 impl Screen {

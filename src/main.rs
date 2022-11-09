@@ -17,7 +17,6 @@ use std::{
 };
 use rand::Rng;
 
-
 fn load_font(memory: &mut Memory) {
     for (i,byte) in FONT_SET.iter().enumerate() {
         memory.write(i as u16 + FONT_ADRESS, *byte);
@@ -32,10 +31,16 @@ fn main() {
     //     let DEBUG = if debug_str == "true" { true } else { false };
     // }
 
-    let mut screen = Screen::new();
 
-    //display::display().unwrap();
-    // Init memory
+    // INIT DISPLAY
+    let mut screen = Screen::new();
+    
+    let (sdl_context, mut canvas) = display::init().expect("Could not init display");
+    let texture_creator = canvas.texture_creator();
+    let (texture_on, texture_off) = display::textures_init(&texture_creator).expect("Failed to create pixel textures");
+
+
+    // INIT MEMORY
     let mut memory: Memory = Memory::new();
     memory.load_rom(ROM_PATH).unwrap();
     load_font(&mut memory);
@@ -54,7 +59,6 @@ fn main() {
     let mut stack = Stack::<u16>::new();     // Stack of adresses used to call subroutines or return from them
     let mut pc: u16 = 0x200;             // program counter
 
-    memory.dump();
 
     let mutex_memory = Arc::new(Mutex::new(memory));
     let mutex_memory_timer = mutex_memory.clone();
@@ -85,13 +89,29 @@ fn main() {
     });
 
 
-    // game loop
-    println!("");
-    println!(" adr  | instr  | effect");
-    println!("------+--------+--------------------------------");
-    loop { 
+    // GAME LOOP
+    if DEBUG {
+        println!("");
+        println!(" adr  | instr  | effect");
+        println!("------+--------+--------------------------------");
+    }
+        'game: loop { 
         let start = Instant::now();
 
+        // Events
+        let event_key = display::events(&sdl_context);
+        let key_pressed: u8;
+        match event_key {
+            Err(e) => {
+                println!("{e}");
+                break 'game;
+            },
+            Ok(key) => {
+                key_pressed = key as u8;
+            }
+        }
+
+     
         let guard = mutex_memory.lock().unwrap();
         let instruction = guard.read_word(pc);
         std::mem::drop(guard);
@@ -389,6 +409,7 @@ fn main() {
                     let mut cY = guard.read(V_adr[Y]) % 32;    // coord Y
                     let ccX = cX.clone();
                     guard.write(V_adr[0xF], 0);
+                    let mut modified: Vec<(u8,u8)> = Vec::new();
 
                     'rows: for i in 0..N {
                         let row = guard.read(guard.read_word(I_adr) + i as u16);
@@ -401,6 +422,7 @@ fn main() {
                                 } else {
                                     screen.set(cX, cY, true);
                                 }
+                                modified.push((cX, cY));
                             }
 
                             let new_cX = cX as usize + 1;
@@ -419,8 +441,10 @@ fn main() {
                         }
                     }
                     std::mem::drop(guard);
-
-                    screen.debug_display();  // TEMPORARY
+                    
+                    if TERMINAL {screen.debug_display();}
+                    else {display::display(&mut canvas, (&texture_off, &texture_on), &screen, modified)
+                        .expect("Error while displaying");}
             }
             0xE => {
                 match instruction & 0x00FF {
@@ -434,10 +458,16 @@ fn main() {
 
                         if instruction & 0x00FF == 0x009E {
                             if DEBUG {println!("0x{:03X} | 0x{:04X} | Skipping next instruction if key with the value of V{:01X} is pressed", pc-2, instruction, X);}
-                            println!("|\n|_"); todo!();
+
+                            if key_pressed == VX {
+                                pc += 2;
+                            }
                         } else if instruction & 0x00FF == 0x00A1 {
                             if DEBUG {println!("0x{:03X} | 0x{:04X} | Skipping next instruction if key with the value of V{:01X} is not pressed", pc-2, instruction, X);}
-                            println!("|\n|_"); todo!();
+
+                            if key_pressed != VX {
+                                pc += 2;
+                            }
                         }
                     }
                     _ => {
@@ -463,7 +493,14 @@ fn main() {
                         let X = ((instruction & 0x0F00) >> 8) as usize;
                         if DEBUG {println!("0x{:03X} | 0x{:04X} | Waiting for a key press, storing the value of the key in V{:01X}", pc-2, instruction, X);}
 
-                        println!("|\n|_"); todo!();
+                        let mut guard = mutex_memory.lock().unwrap();
+                        loop {
+                            if key_pressed != 0xFF {
+                                guard.write(V_adr[X], key_pressed as u8);
+                                break;
+                            }
+                        }
+                        std::mem::drop(guard);
                     }
                     0x0015 | 0x0018 => {
                         // 0xFX15 set the delay timer to VX
@@ -558,6 +595,7 @@ fn main() {
             }
         }
 
+        // To have IPS instructions per second
         if start.elapsed() < Duration::from_millis(1000 / IPS) {
             thread::sleep(Duration::from_millis(1000 / IPS) - start.elapsed());
         }
