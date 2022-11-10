@@ -1,7 +1,7 @@
 #![allow(dead_code)]
 
-pub const ROM_PATH: &str = "roms/games/Pong [Paul Vervalin, 1990].ch8";
-pub const IPS : u64 = 700; // instructions per second
+pub const ROM_PATH: &str = "roms/programs/Clock Program [Bill Fisher, 1981].ch8";
+pub const IPS : u64 = 400; // instructions per second
 
 pub const FONT_ADRESS: u16 = 0x50;
 

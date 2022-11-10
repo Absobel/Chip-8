@@ -457,13 +457,13 @@ fn main() {
                         std::mem::drop(guard);
 
                         if instruction & 0x00FF == 0x009E {
-                            if DEBUG {println!("0x{:03X} | 0x{:04X} | Skipping next instruction if key with the value of V{:01X} is pressed", pc-2, instruction, X);}
+                            if DEBUG {println!("0x{:03X} | 0x{:04X} | Skipping next instruction if key with the value of V{:01X} ({:02X}) is pressed", pc-2, instruction, X, VX);}
 
                             if key_pressed == VX {
                                 pc += 2;
                             }
                         } else if instruction & 0x00FF == 0x00A1 {
-                            if DEBUG {println!("0x{:03X} | 0x{:04X} | Skipping next instruction if key with the value of V{:01X} is not pressed", pc-2, instruction, X);}
+                            if DEBUG {println!("0x{:03X} | 0x{:04X} | Skipping next instruction if key with the value of V{:01X} ({:02X}) is not pressed", pc-2, instruction, X, VX);}
 
                             if key_pressed != VX {
                                 pc += 2;

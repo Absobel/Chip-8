@@ -60,10 +60,10 @@ pub fn events(sdl_context: &Sdl) -> Result<usize, String> {
             Event::KeyDown { keycode: Some(Keycode::Num4), .. } => {
                 return Ok(0xC);
             },
-            Event::KeyDown { keycode: Some(Keycode::Q), .. } => {
+            Event::KeyDown { keycode: Some(Keycode::A), .. } => {
                 return Ok(0x4);
             },
-            Event::KeyDown { keycode: Some(Keycode::W), .. } => {
+            Event::KeyDown { keycode: Some(Keycode::Z), .. } => {
                 return Ok(0x5);
             },
             Event::KeyDown { keycode: Some(Keycode::E), .. } => {
@@ -72,7 +72,7 @@ pub fn events(sdl_context: &Sdl) -> Result<usize, String> {
             Event::KeyDown { keycode: Some(Keycode::R), .. } => {
                 return Ok(0xD);
             },
-            Event::KeyDown { keycode: Some(Keycode::A), .. } => {
+            Event::KeyDown { keycode: Some(Keycode::Q), .. } => {
                 return Ok(0x7);
             },
             Event::KeyDown { keycode: Some(Keycode::S), .. } => {
@@ -84,7 +84,7 @@ pub fn events(sdl_context: &Sdl) -> Result<usize, String> {
             Event::KeyDown { keycode: Some(Keycode::F), .. } => {
                 return Ok(0xE);
             },
-            Event::KeyDown { keycode: Some(Keycode::Z), .. } => {
+            Event::KeyDown { keycode: Some(Keycode::W), .. } => {
                 return Ok(0xA);
             },
             Event::KeyDown { keycode: Some(Keycode::X), .. } => {
@@ -96,7 +96,7 @@ pub fn events(sdl_context: &Sdl) -> Result<usize, String> {
             Event::KeyDown { keycode: Some(Keycode::V), .. } => {
                 return Ok(0xF);
             },
-            _ => {}
+            _ => return Ok(0xFF),
         }
     }
     Ok(0xFF)
