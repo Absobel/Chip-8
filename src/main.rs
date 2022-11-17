@@ -95,7 +95,8 @@ fn main() {
         println!(" adr  | instr  | effect");
         println!("------+--------+--------------------------------");
     }
-        'game: loop { 
+    
+    'game: loop { 
         let start = Instant::now();
 
         // Events

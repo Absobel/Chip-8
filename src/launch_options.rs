@@ -1,7 +1,8 @@
 #![allow(dead_code)]
 
-pub const ROM_PATH: &str = "roms/programs/Jumping X and O [Harry Kleinberg, 1977].ch8";
-pub const IPS : u64 = 700; // instructions per second
+//pub const ROM_PATH: &str = "roms/programs/Clock Program [Bill Fisher, 1981].ch8";
+pub const ROM_PATH: &str = "roms/programs/IBM Logo.ch8";
+pub const IPS : u64 = 400; // instructions per second
 
 pub const DEBUG: bool = false;
 pub const TERMINAL: bool = false;
