@@ -495,11 +495,10 @@ fn main() {
                         if DEBUG {println!("0x{:03X} | 0x{:04X} | Waiting for a key press, storing the value of the key in V{:01X}", pc-2, instruction, X);}
 
                         let mut guard = mutex_memory.lock().unwrap();
-                        loop {
-                            if key_pressed != 0xFF {
-                                guard.write(V_adr[X], key_pressed as u8);
-                                break;
-                            }
+                        if key_pressed != 0xFF {
+                            guard.write(V_adr[X], key_pressed as u8);
+                        } else {
+                            pc -= 2;
                         }
                         std::mem::drop(guard);
                     }
