@@ -40,7 +40,8 @@ pub fn init() -> Result<(Sdl, Canvas<Window>), String> {
     if TERMINAL {window.hide();}
     let mut canvas = window.into_canvas().build().expect("Could not make a canvas");
 
-    canvas.set_draw_color(Color::RGB(0,0,0));
+    let [r,g,b] = PIXEL_OFF;
+    canvas.set_draw_color(Color::RGB(r,g,b));
     canvas.clear();
     canvas.present();
     Ok((sdl_context, canvas))
