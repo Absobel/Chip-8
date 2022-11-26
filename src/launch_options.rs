@@ -1,15 +1,14 @@
 #![allow(dead_code)]
 
-//pub const ROM_PATH: &str = "roms/autre/INVADERS";
-//pub const ROM_PATH: &str = "roms/programs/Jumping X and O [Harry Kleinberg, 1977].ch8";
-pub const ROM_PATH: &str = "roms/test_opcode.ch8";
-pub const IPS : u64 = 400; // instructions per second
+pub const ROM_PATH: &str = "roms/games/Airplane.ch8";
+
+pub const IPS : u64 = 700; // instructions per second
 
 pub const DEBUG: bool = true;
 pub const TERMINAL: bool = false;
 
-pub const PIXEL_ON: [u8; 3] = [0x00, 0x6C, 0x70];
-pub const PIXEL_OFF: [u8; 3] = [0x00, 0xF6, 0xFF];
+pub const PIXEL_ON: [u8; 3] = [0x00, 0x00, 0x00];
+pub const PIXEL_OFF: [u8; 3] = [0xFF, 0xFF, 0xFF];
 
 pub const CB_8XY_ : CB = CB::NEW;   // NEW : does not                           |||| OLD : + Set VX to the value of VY
 pub const CB_B_NN : CB = CB::NEW;   // NEW : Jump to adress NNN + VX            |||| OLD : Jump to the address NNN plus V0.

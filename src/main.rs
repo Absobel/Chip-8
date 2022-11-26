@@ -37,7 +37,7 @@ fn main() {
     
     let (sdl_context, mut canvas) = display::init().expect("Could not init display");
     let texture_creator = canvas.texture_creator();
-    let (texture_on, texture_off) = display::textures_init(&texture_creator).expect("Failed to create pixel textures");
+    let (texture_off, texture_on) = display::textures_init(&texture_creator).expect("Failed to create pixel textures");
 
 
     // INIT MEMORY
@@ -133,6 +133,7 @@ fn main() {
                     0x00E0 => {
                         if DEBUG {println!("0x{:03X} | 0x{:04X} | Screen clearing", pc-2, instruction);}
                         screen.clear();
+                        display::clear_screen(&mut canvas, &texture_off).expect("Failed to clear screen");
                     }
                     // Return from subroutine
                     0x00EE => {
@@ -514,7 +515,7 @@ fn main() {
 
                         let mut guard = mutex_memory.lock().unwrap();
                         let VX = guard.read(V_adr[X]);
-                        let (digit_1,digit_2,digit_3) = (VX / 100, (VX % 100) / 10, VX % 10);   
+                        let (digit_1,digit_2,digit_3) = (VX / 100, (VX / 10) % 10, VX % 10);   
                         let I = guard.read_word(I_adr);
                         guard.write(I, digit_1);
                         guard.write(I + 1, digit_2);
@@ -527,7 +528,7 @@ fn main() {
                         let mut guard = mutex_memory.lock().unwrap();
                         let I = guard.read_word(I_adr);
                         if DEBUG {println!("0x{:03X} | 0x{:04X} |", pc-2, instruction);}
-                        for i in 0..X {
+                        for i in 0..X+1 {
                             let iu16 = i as u16;
                             if instruction & 0x00FF == 0x0055 {
                                 if DEBUG {println!("      | Storing V{:01X} in memory at address {:03X}+{:01X}", i, I, i);}
