@@ -10,12 +10,26 @@ use sdl2::{
         rect::{Point,Rect},
         Sdl, video::{WindowContext, Window},
     };
+use image::{RgbImage, Rgb};
 
 const SCREEN_WIDTH: u32 = 1280;
 const SCREEN_HEIGHT: u32 = 640;
 const SIZE_PIXEL: u32 = 20;
 
 pub fn init() -> Result<(Sdl, Canvas<Window>), String> {
+
+    // generate pixel textures
+    let mut pixel_off = RgbImage::new(SIZE_PIXEL, SIZE_PIXEL);
+    let mut pixel_on = RgbImage::new(SIZE_PIXEL, SIZE_PIXEL);
+    for x in 0..SIZE_PIXEL {
+        for y in 0..SIZE_PIXEL {
+            pixel_off.put_pixel(x, y, Rgb(PIXEL_OFF));
+            pixel_on.put_pixel(x, y, Rgb(PIXEL_ON));
+        }
+    }
+    pixel_off.save("assets/pixel_off.png").unwrap();
+    pixel_on.save("assets/pixel_on.png").unwrap();
+
     let sdl_context = sdl2::init()?;
     let video_subsystem = sdl_context.video()?;
     let mut window = video_subsystem.window("CHIP-8", SCREEN_WIDTH, SCREEN_HEIGHT)

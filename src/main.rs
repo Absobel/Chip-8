@@ -489,15 +489,14 @@ fn main() {
                         // 0xFX1E add VX to I with carry flag if CB_BNNN = NEW
                         let mut guard = mutex_memory.lock().unwrap();
                         let VX = guard.read(V_adr[X]);
-                        let value = guard.read_word(I_adr) as usize + VX as usize;
-                        if CB_FX1E == CB::NEW && value > 0xFFF {
+                        let new_I = guard.read_word(I_adr) as usize + VX as usize;
+                        if CB_FX1E == CB::NEW && new_I > 0xFFF {
                             if DEBUG {println!("0x{:03X} | 0x{:04X} | Adding V{:01X} to I with carry flag", pc-2, instruction, X);}
                             guard.write(V_adr[0xF], 1);
                         } else {
                             if DEBUG {println!("0x{:03X} | 0x{:04X} | Adding V{:01X} to I", pc-2, instruction, X);}
-                            guard.write(V_adr[0xF], 0);
                         } 
-                        guard.write_word(I_adr, (value % 0x1000) as u16);
+                        guard.write_word(I_adr, (new_I % 0x1000) as u16);
                         std::mem::drop(guard);
                     }
                     0x0029 => {
@@ -505,8 +504,8 @@ fn main() {
                         if DEBUG {println!("0x{:03X} | 0x{:04X} | Setting I to the location of the sprite for the character in V{:01X}", pc-2, instruction, X);}
 
                         let mut guard = mutex_memory.lock().unwrap();
-                        let char_0x = guard.read(V_adr[X]) & 0xF;
-                        guard.write_word(I_adr, char_0x as u16 + 50);
+                        let char_0x = guard.read(V_adr[X]) & 0x0F;
+                        guard.write_word(I_adr, (char_0x as u16)*5 + 50);
                         std::mem::drop(guard);
                     }
                     0x0033 => {
@@ -527,21 +526,21 @@ fn main() {
                         // 0xFX65 store memory to V0 to VX starting at address I
                         let mut guard = mutex_memory.lock().unwrap();
                         let I = guard.read_word(I_adr);
-                        let mut new_I = I;
+                        if DEBUG {println!("0x{:03X} | 0x{:04X} |", pc-2, instruction);}
                         for i in 0..X {
+                            let iu16 = i as u16;
                             if instruction & 0x00FF == 0x0055 {
-                                if DEBUG {println!("0x{:03X} | 0x{:04X} | Storing V{:01X} to V{:01X} in memory starting at address I", pc-2, instruction, 0, X);}
+                                if DEBUG {println!("      | Storing V{:01X} in memory at address {:03X}+{:01X}", i, I, i);}
                                 let Vi = guard.read(V_adr[i]);
-                                guard.write(new_I, Vi);
+                                guard.write(I+iu16, Vi);
                             } else /* instruction & 0x00FF == 0x0065 */ {
-                                if DEBUG {println!("0x{:03X} | 0x{:04X} | Storing memory to V{:01X} to V{:01X} starting at address I", pc-2, instruction, 0, X);}
-                                let future_Vi = guard.read(new_I);
+                                if DEBUG {println!("      | Storing memory at address {:03X}+{:01X} in V{:01X}", I, i, i);}
+                                let future_Vi = guard.read(I+iu16);
                                 guard.write(V_adr[i], future_Vi);
                             }
-                            new_I += 1;
-                            if CB_FX_5 == CB::OLD {
-                                guard.write_word(I_adr, new_I);
-                            }
+                        }
+                        if CB_FX_5 == CB::OLD {
+                            guard.write_word(I_adr, I+(X as u16)+1);
                         }
                     }
                     _ => {
