@@ -1,12 +1,10 @@
 #![allow(non_snake_case)]
 mod memory;
-mod stack;
 mod display;
 mod screen;
 mod launch_options;
 
 use memory::Memory;
-use stack::Stack;
 use screen::Screen;
 use launch_options::*;
 
@@ -56,7 +54,7 @@ fn main() {
     memory.write(timer_adr, 0x00);
     memory.write(sound_adr, 0x00);                       // Sound register
 
-    let mut stack = Stack::<u16>::new();     // Stack of adresses used to call subroutines or return from them
+    let mut stack = Vec::<u16>::new();     // Stack of adresses used to call subroutines or return from them
     let mut pc: u16 = 0x200;             // program counter
 
 
@@ -73,6 +71,7 @@ fn main() {
                 std::mem::drop(guard);
                 thread::sleep(Duration::from_millis(16));
             }
+            else {std::mem::drop(guard);}
         }
     });
     thread::spawn(move || {
@@ -85,6 +84,8 @@ fn main() {
                 std::mem::drop(guard);
                 thread::sleep(Duration::from_millis(16));
             }
+            else {std::mem::drop(guard);}
+
         }
     });
 

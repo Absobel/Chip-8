@@ -1,8 +1,8 @@
 #![allow(dead_code)]
 
-pub const ROM_PATH: &str = "roms/games/Airplane.ch8";
+pub const ROM_PATH: &str = "roms/autre/INVADERS";
 
-pub const IPS : u64 = 700; // instructions per second
+pub const IPS : u64 = 300; // instructions per second
 
 pub const DEBUG: bool = true;
 pub const TERMINAL: bool = false;
