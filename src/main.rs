@@ -11,7 +11,7 @@ use launch_options::*;
 use std::{
     time::{Duration, Instant},
     thread,
-    sync::{Arc, Mutex},
+    sync::{Arc, Mutex, mpsc},
 };
 use rand::Rng;
 
@@ -33,11 +33,6 @@ fn main() {
     // INIT DISPLAY
     let mut screen = Screen::new();
     
-    let (sdl_context, mut canvas) = display::init().expect("Could not init display");
-    let texture_creator = canvas.texture_creator();
-    let (texture_off, texture_on) = display::textures_init(&texture_creator).expect("Failed to create pixel textures");
-
-
     // INIT MEMORY
     let mut memory: Memory = Memory::new();
     memory.load_rom(ROM_PATH).unwrap();
@@ -61,6 +56,9 @@ fn main() {
     let mutex_memory = Arc::new(Mutex::new(memory));
     let mutex_memory_timer = mutex_memory.clone();
     let mutex_memory_sound = mutex_memory.clone();
+
+    let (tx, rx) = mpsc::channel();
+    let (tx2, rx2) = mpsc::channel();
 
     thread::spawn(move || {
         loop {
@@ -89,6 +87,31 @@ fn main() {
         }
     });
 
+    // thread display
+    thread::spawn(move || {
+        loop {
+            let (sdl_context, mut canvas) = display::init().expect("Could not init display");
+            let texture_creator = canvas.texture_creator();
+            let (texture_off, texture_on) = display::textures_init(&texture_creator).expect("Failed to create pixel textures");
+            
+            let modified = rx2.recv().expect("Could not receive modifed pixels");
+            display::display(&mut canvas, (&texture_off,&texture_on), &screen, modified).expect("Failed to display");
+
+            // Events
+            let event_key = display::events(&sdl_context);
+            let key_pressed: u8;
+            match event_key {
+                Err(e) => {
+                    println!("{e}");
+                    break;
+                },
+                Ok(key) => {
+                    key_pressed = key as u8;
+                }
+            }
+            tx.send(key_pressed).expect("Could not send key pressed");
+        }
+    });
 
     // GAME LOOP
     if DEBUG {
@@ -97,23 +120,9 @@ fn main() {
         println!("------+--------+--------------------------------");
     }
     
-    'game: loop { 
+    loop { 
         let start = Instant::now();
 
-        // Events
-        let event_key = display::events(&sdl_context);
-        let key_pressed: u8;
-        match event_key {
-            Err(e) => {
-                println!("{e}");
-                break 'game;
-            },
-            Ok(key) => {
-                key_pressed = key as u8;
-            }
-        }
-
-     
         let guard = mutex_memory.lock().unwrap();
         let instruction = guard.read_word(pc);
         std::mem::drop(guard);
@@ -127,6 +136,7 @@ fn main() {
         pc += 2;
         let opcode = (instruction & 0xF000) >> 12; 
 
+        let key_pressed = rx.recv().expect("Could not receive key pressed");
         match opcode {
             0 => {
                 match instruction {
@@ -134,7 +144,7 @@ fn main() {
                     0x00E0 => {
                         if DEBUG {println!("0x{:03X} | 0x{:04X} | Screen clearing", pc-2, instruction);}
                         screen.clear();
-                        display::clear_screen(&mut canvas, &texture_off).expect("Failed to clear screen");
+                        tx2.send(screen.to_modified()).expect("Could not send screen modified");
                     }
                     // Return from subroutine
                     0x00EE => {
@@ -417,8 +427,7 @@ fn main() {
                     std::mem::drop(guard);
                     
                     if TERMINAL {screen.debug_display();}
-                    else {display::display(&mut canvas, (&texture_off, &texture_on), &screen, modified)
-                        .expect("Error while displaying");}
+                    else {tx2.send(modified).expect("Could not send modified pixels");}
             }
             0xE => {
                 match instruction & 0x00FF {

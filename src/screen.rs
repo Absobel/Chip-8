@@ -6,6 +6,7 @@ pub struct Pixel {
     state: bool,
 }
 
+#[derive(Copy, Clone)]
 pub struct Screen {
     pub pixels: [[Pixel; 64]; 32]
 }
@@ -33,6 +34,16 @@ impl Screen {
         let x = x as usize;
         let y = y as usize;
         self.pixels[y][x].state = state;
+    }
+
+    pub fn to_modified(&self) -> Vec<(u8,u8)> {
+        let mut modified = Vec::new();
+        for x in 0..32 {
+            for y in 0..64 {
+                modified.push((x as u8, y as u8));
+            }
+        }
+        return modified;
     }
 
     #[allow(dead_code)]
