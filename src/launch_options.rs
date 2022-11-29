@@ -1,8 +1,8 @@
 #![allow(dead_code)]
 
-pub const ROM_PATH: &str = "roms/autre/INVADERS";
+pub const ROM_PATH: &str = "roms/autre/PONG2";
 
-pub const IPS : u64 = 300; // instructions per second
+pub const IPS : u64 = 100; // instructions per second
 
 pub const DEBUG: bool = true;
 pub const TERMINAL: bool = false;
