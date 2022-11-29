@@ -11,7 +11,7 @@ use launch_options::*;
 use std::{
     time::{Duration, Instant},
     thread,
-    sync::{Arc, Mutex},
+    sync::{Arc, Mutex, mpsc},
 };
 use rand::Rng;
 
@@ -89,7 +89,29 @@ fn main() {
         }
     });
 
-    
+    // thread events
+    let (tx,rx) = mpsc::channel();
+    let arc_sdl_context = Arc::new(Mutex::new(sdl_context));
+    thread::spawn(move || {
+        loop {
+            let sdl_context = *Arc::try_unwrap(arc_sdl_context).expect("Could not unwrap sdl_context");
+            let mut isErreur: bool = false;
+
+            // Events
+            let event_key = display::events(&sdl_context);
+            let mut key_pressed: u8 = 0xFF;
+            match event_key {
+                Err(e) => {
+                    println!("{e}");
+                    isErreur = true;
+                },
+                Ok(key) => {
+                    key_pressed = key as u8;
+                }
+            }
+            tx.send((key_pressed,isErreur)).expect("Could not send key pressed");
+        }
+    });
 
     // GAME LOOP
     if DEBUG {
@@ -101,20 +123,11 @@ fn main() {
     'game: loop { 
         let start = Instant::now();
 
-        // Events
-        let event_key = display::events(&sdl_context);
-        let key_pressed: u8;
-        match event_key {
-            Err(e) => {
-                println!("{e}");
-                break 'game;
-            },
-            Ok(key) => {
-                key_pressed = key as u8;
-            }
+        let (key_pressed, isErreur) = rx.recv().expect("Could not receive key pressed");
+        if isErreur {
+            break 'game;
         }
 
-     
         let guard = mutex_memory.lock().unwrap();
         let instruction = guard.read_word(pc);
         std::mem::drop(guard);
