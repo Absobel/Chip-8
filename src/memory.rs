@@ -49,11 +49,11 @@ impl Memory {
         for (i, byte) in self.data.iter().enumerate() {
             // print 16 bytes per line
             if i % 16 == 0 {
-                println!("");
+                println!();
                 print!("{:03x} : ", i);
             }
             print!("{:02X} ", byte);
         }
-        println!("");
+        println!();
     }
 }

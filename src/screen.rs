@@ -1,5 +1,4 @@
-#[path = "launch_options.rs"] mod launch_options;
-use launch_options::DEBUG;
+use super::launch_options::DEBUG;
 
 #[derive(Copy, Clone)]
 pub struct Pixel {
@@ -46,7 +45,7 @@ impl Screen {
                     print!(" ");
                 }
             }
-            println!("");
+            println!();
         }
     }
 }

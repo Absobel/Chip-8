@@ -143,7 +143,7 @@ pub fn display(
         let texture = if screen.is_on(x,y) {textures.1} else {textures.0};
         let position = Point::new(x as i32 * SIZE_PIXEL as i32, y as i32 * SIZE_PIXEL as i32);
         let sprite = Rect::new(0,0,SIZE_PIXEL,SIZE_PIXEL);
-        render(canvas, &texture, position, sprite)?;
+        render(canvas, texture, position, sprite)?;
     }
     canvas.present();
 
@@ -156,9 +156,9 @@ pub fn clear_screen(
 ) -> Result<(), String> {
     for x in 0..64 {
         for y in 0..32 {
-            let position = Point::new(x as i32 * SIZE_PIXEL as i32, y as i32 * SIZE_PIXEL as i32);
+            let position = Point::new(x * SIZE_PIXEL as i32, y * SIZE_PIXEL as i32);
             let sprite = Rect::new(0,0,SIZE_PIXEL,SIZE_PIXEL);
-            render(canvas, &texture_off, position, sprite)?;
+            render(canvas, texture_off, position, sprite)?;
         }
     }
     canvas.present();
