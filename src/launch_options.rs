@@ -1,8 +1,9 @@
 #![allow(dead_code)]
+#![allow(clippy::upper_case_acronyms)]
 
 pub const ROM_PATH: &str = "roms/autre/INVADERS";
 
-pub const IPS : u64 = 300; // instructions per second
+pub const IPS: u64 = 300; // instructions per second
 
 pub const DEBUG: bool = true;
 pub const TERMINAL: bool = false;
@@ -10,10 +11,10 @@ pub const TERMINAL: bool = false;
 pub const PIXEL_ON: [u8; 3] = [0x21, 0x31, 0x34];
 pub const PIXEL_OFF: [u8; 3] = [0xFF, 0xFF, 0xFF];
 
-pub const CB_8XY_ : CB = CB::NEW;   // NEW : does not                           |||| OLD : + Set VX to the value of VY
-pub const CB_B_NN : CB = CB::NEW;   // NEW : Jump to adress NNN + VX            |||| OLD : Jump to the address NNN plus V0.
-pub const CB_FX1E : CB = CB::NEW;   // NEW : + If I overlfow the memory, VF = 1 |||| OLD : does not
-pub const CB_FX_5 : CB = CB::NEW;   // NEW : is not                             |||| OLD : I is incremented 
+pub const CB_8XY_: CB = CB::NEW; // NEW : does not                           |||| OLD : + Set VX to the value of VY
+pub const CB_B_NN: CB = CB::NEW; // NEW : Jump to adress NNN + VX            |||| OLD : Jump to the address NNN plus V0.
+pub const CB_FX1E: CB = CB::NEW; // NEW : + If I overlfow the memory, VF = 1 |||| OLD : does not
+pub const CB_FX_5: CB = CB::NEW; // NEW : is not                             |||| OLD : I is incremented
 
 pub const FONT_ADRESS: u16 = 0x50;
 pub const FONT_SET: [u8; 80] = [
@@ -35,13 +36,9 @@ pub const FONT_SET: [u8; 80] = [
     0xF0, 0x80, 0xF0, 0x80, 0x80, // F
 ];
 
-
 #[derive(PartialEq)]
-pub enum CB {        // Command behavior
+pub enum CB {
+    // Command behavior
     NEW,
     OLD,
 }
-
-
-
-

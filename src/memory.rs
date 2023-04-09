@@ -7,9 +7,7 @@ pub struct Memory {
 
 impl Memory {
     pub fn new() -> Memory {
-        Memory {
-            data: [0; 4096],
-        }
+        Memory { data: [0; 4096] }
     }
 
     pub fn load_rom(&mut self, rom: &str) -> Result<(), String> {
@@ -37,7 +35,7 @@ impl Memory {
         let high = ((value & 0xFF00) >> 8) as u8;
         let low = (value & 0x00FF) as u8;
         self.data[address as usize] = high;
-        self.data[address as usize +1] = low;
+        self.data[address as usize + 1] = low;
     }
 
     pub fn write(&mut self, address: u16, value: u8) {

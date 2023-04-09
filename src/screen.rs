@@ -6,13 +6,13 @@ pub struct Pixel {
 }
 
 pub struct Screen {
-    pub pixels: [[Pixel; 64]; 32]
+    pub pixels: [[Pixel; 64]; 32],
 }
 
 impl Screen {
     pub fn new() -> Screen {
         Screen {
-            pixels: [[Pixel {state: false}; 64]; 32]
+            pixels: [[Pixel { state: false }; 64]; 32],
         }
     }
 
@@ -36,7 +36,9 @@ impl Screen {
 
     #[allow(dead_code)]
     pub fn debug_display(&self) {
-        if !DEBUG {print!("\x1B[2J\x1B[1;1H");}
+        if !DEBUG {
+            print!("\x1B[2J\x1B[1;1H");
+        }
         for x in 0..32 {
             for y in 0..64 {
                 if self.pixels[x][y].state {
