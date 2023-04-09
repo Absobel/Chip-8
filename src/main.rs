@@ -181,52 +181,50 @@ fn main() {
                 let VX = guard.read(V_adr[X]);
                 std::mem::drop(guard);
 
-                if opcode == 3 {
-                    if VX == NN as u8 {
-                        if DEBUG {
-                            println!("0x{:03X} | 0x{:04X} | Skipping next instruction because V{:X} == 0x{:02X}", pc-2, instruction, X, NN);
-                        }
-                        pc += 2;
-                    } else if DEBUG {
-                        println!("0x{:03X} | 0x{:04X} | Not skipping next instruction because V{:X} != 0x{:02X}", pc-2, instruction, X, NN);
-                    }
-                } else if opcode == 4 {
-                    if VX != NN as u8 {
-                        if DEBUG {
-                            println!("0x{:03X} | 0x{:04X} | Skipping next instruction because V{:X} != 0x{:02X}", pc-2, instruction, X, NN);
-                        }
-                        pc += 2;
-                    } else if DEBUG {
-                        println!("0x{:03X} | 0x{:04X} | Not skipping next instruction because V{:X} == 0x{:02X}", pc-2, instruction, X, NN);
+                if DEBUG {
+                    match (opcode, VX == NN as u8) {
+                        (3, true) => println!("0x{:03X} | 0x{:04X} | Skipping next instruction because V{:X} == 0x{:02X}", pc-2, instruction, X, NN),
+                        (3, false) => println!("0x{:03X} | 0x{:04X} | Not skipping next instruction because V{:X} != 0x{:02X}", pc-2, instruction, X, NN),
+                        (4, true) => println!("0x{:03X} | 0x{:04X} | Not skipping next instruction because V{:X} == 0x{:02X}", pc-2, instruction, X, NN),
+                        (4, false) => println!("0x{:03X} | 0x{:04X} | Skipping next instruction because V{:X} != 0x{:02X}", pc-2, instruction, X, NN),
+                        _ => (),
                     }
                 }
+
+                pc += if (opcode == 3 && VX == NN as u8) || (opcode == 4 && VX != NN as u8) {
+                    2
+                } else {
+                    0
+                };
             }
             5 | 9 => {
-                if instruction & 0x000F == 0 {
-                    // 0x5XY0 skip next instruction if VX == VY
-                    let guard = mutex_memory.lock().unwrap();
-                    let VX = guard.read(V_adr[X]);
-                    let VY = guard.read(V_adr[Y]);
-                    std::mem::drop(guard);
+                // 0x5XY0 skip next instruction if VX == VY
+                let guard = mutex_memory.lock().unwrap();
+                let VX = guard.read(V_adr[X]);
+                let VY = guard.read(V_adr[Y]);
+                std::mem::drop(guard);
 
-                    if opcode == 5 {
-                        if VX == VY {
-                            if DEBUG {
-                                println!("0x{:03X} | 0x{:04X} | Skipping next instruction because V{:X} == V{:X}", pc-2, instruction, X, Y);
-                            }
-                            pc += 2;
-                        } else if DEBUG {
-                            println!("0x{:03X} | 0x{:04X} | Not skipping next instruction because V{:X} != V{:X}", pc-2, instruction, X, Y);
-                        }
-                    } else if opcode == 9 {
-                        if VX != VY {
-                            if DEBUG {
-                                println!("0x{:03X} | 0x{:04X} | Skipping next instruction because V{:X} != V{:X}", pc-2, instruction, X, Y);
-                            }
-                            pc += 2;
-                        } else if DEBUG {
-                            println!("0x{:03X} | 0x{:04X} | Not skipping next instruction because V{:X} == V{:X}", pc-2, instruction, X, Y);
-                        }
+                if opcode == 5 || opcode == 9 {
+                    let condition_met = if opcode == 5 { VX == VY } else { VX != VY };
+
+                    if condition_met {
+                        pc += 2;
+                    }
+
+                    if DEBUG {
+                        let skip_action = if condition_met {
+                            "Skipping"
+                        } else {
+                            "Not skipping"
+                        };
+                        let condition_text = if opcode == 5 { "==" } else { "!=" };
+                        println!(
+                            "0x{:03X} | 0x{:04X} | {skip_action} next instruction because V{:X} {condition_text} V{:X}",
+                            pc - 2,
+                            instruction,
+                            X,
+                            Y
+                        );
                     }
                 } else {
                     println!(
@@ -300,20 +298,20 @@ fn main() {
                             1 => {
                                 if DEBUG {
                                     println!("0x{:03X} | 0x{:04X} | Setting register V{:01X} to V{:01X} | V{:01X}", pc-2, instruction, X, X, Y);
-                                    guard.write(V_adr[X], VX | VY);
                                 }
+                                guard.write(V_adr[X], VX | VY);
                             }
                             2 => {
                                 if DEBUG {
                                     println!("0x{:03X} | 0x{:04X} | Setting register V{:01X} to V{:01X} & V{:01X}", pc-2, instruction, X, X, Y);
-                                    guard.write(V_adr[X], VX & VY);
                                 }
+                                guard.write(V_adr[X], VX & VY);
                             }
                             3 => {
                                 if DEBUG {
                                     println!("0x{:03X} | 0x{:04X} | Setting register V{:01X} to V{:01X} ^ V{:01X}", pc-2, instruction, X, X, Y);
-                                    guard.write(V_adr[X], VX ^ VY);
                                 }
+                                guard.write(V_adr[X], VX ^ VY);
                             }
                             _ => unreachable!(),
                         }
@@ -524,40 +522,35 @@ fn main() {
                 }
             }
             0xE => {
-                match instruction & 0x00FF {
-                    0x009E | 0x00A1 => {
-                        // 0xEX9E skip next instruction if key with the value of VX is pressed
-                        // 0xEXA1 skip next instruction if key with the value of VX is not pressed
-                        let guard = mutex_memory.lock().unwrap();
-                        let VX = guard.read(V_adr[X]);
-                        std::mem::drop(guard);
+                // 0xEX9E skip next instruction if key with the value of VX is pressed
+                // 0xEXA1 skip next instruction if key with the value of VX is not pressed
+                let guard = mutex_memory.lock().unwrap();
+                let VX = guard.read(V_adr[X]);
+                std::mem::drop(guard);
 
-                        if instruction & 0x00FF == 0x009E {
-                            if DEBUG {
-                                println!("0x{:03X} | 0x{:04X} | Skipping next instruction if key with the value of V{:01X} ({:02X}) is pressed", pc-2, instruction, X, VX);
-                            }
-
-                            if key_pressed == VX {
-                                pc += 2;
-                            }
-                        } else if instruction & 0x00FF == 0x00A1 {
-                            if DEBUG {
-                                println!("0x{:03X} | 0x{:04X} | Skipping next instruction if key with the value of V{:01X} ({:02X}) is not pressed", pc-2, instruction, X, VX);
-                            }
-
-                            if key_pressed != VX {
-                                pc += 2;
-                            }
-                        }
+                if instruction & 0x00FF == 0x009E {
+                    if DEBUG {
+                        println!("0x{:03X} | 0x{:04X} | Skipping next instruction if key with the value of V{:01X} ({:02X}) is pressed", pc-2, instruction, X, VX);
                     }
-                    _ => {
-                        println!(
-                            "0x{:03X} | 0x{:04X} | Non used instruction",
-                            pc - 2,
-                            instruction
-                        );
-                        break;
+
+                    if key_pressed == VX {
+                        pc += 2;
                     }
+                } else if instruction & 0x00FF == 0x00A1 {
+                    if DEBUG {
+                        println!("0x{:03X} | 0x{:04X} | Skipping next instruction if key with the value of V{:01X} ({:02X}) is not pressed", pc-2, instruction, X, VX);
+                    }
+
+                    if key_pressed != VX {
+                        pc += 2;
+                    }
+                } else {
+                    println!(
+                        "0x{:03X} | 0x{:04X} | Non used instruction",
+                        pc - 2,
+                        instruction
+                    );
+                    break;
                 }
             }
             0xF => {
