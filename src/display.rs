@@ -195,6 +195,9 @@ pub fn display(
     screen: &screen::Screen,
     modified: Vec<(u8, u8)>,
 ) -> Result<(), String> {
+    if DEBUG_VERBOSE {
+        println!("               | modified: {:?}", modified);
+    }
     for (x, y) in modified {
         let texture = if screen.is_on(x, y) {
             textures.1

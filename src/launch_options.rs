@@ -6,6 +6,7 @@ pub const ROM_PATH: &str = "roms/test_opcode.ch8";
 pub const IPS: u64 = 10; // instructions per second
 
 pub const DEBUG: bool = true;
+pub const DEBUG_VERBOSE: bool = true;
 pub const TERMINAL: bool = false;
 
 pub const PIXEL_ON: [u8; 3] = [0x21, 0x31, 0x34];

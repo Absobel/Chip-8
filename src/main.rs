@@ -668,20 +668,20 @@ fn main() {
                         let mut guard = mutex_memory.lock().unwrap();
                         let I = guard.read_word(I_adr);
                         if DEBUG {
-                            println!("0x{:03X} | 0x{:04X} |", pc - 2, instruction);
+                            println!("0x{:03X} | 0x{:04X} | Storing V0 to V{:01X} in memory starting at address I", pc-2, instruction, X);
                         }
                         for (i, V_adr_i) in V_adr.iter().enumerate() {
                             let iu16 = i as u16;
                             if instruction & 0x00FF == 0x0055 {
-                                if DEBUG {
-                                    println!("      | Storing V{:01X} in memory at address {:03X}+{:01X}", i, I, i);
+                                if DEBUG_VERBOSE {
+                                    println!("               | Storing V{:01X} in memory at address {:03X}+{:01X}", i, I, i);
                                 }
                                 let Vi = guard.read(*V_adr_i);
                                 guard.write(I + iu16, Vi);
                             } else {
                                 /* instruction & 0x00FF == 0x0065 */
-                                if DEBUG {
-                                    println!("      | Storing memory at address {:03X}+{:01X} in V{:01X}", I, i, i);
+                                if DEBUG_VERBOSE {
+                                    println!("               | Storing memory at address {:03X}+{:01X} in V{:01X}", I, i, i);
                                 }
                                 let future_Vi = guard.read(I + iu16);
                                 guard.write(*V_adr_i, future_Vi);
