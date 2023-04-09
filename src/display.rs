@@ -53,9 +53,9 @@ pub fn init() -> Result<(Sdl, Canvas<Window>), String> {
     Ok((sdl_context, canvas))
 }
 
-pub fn textures_init<'a>(
-    texture_creator: &'a TextureCreator<WindowContext>,
-) -> Result<(Texture<'a>, Texture<'a>), String> {
+pub fn textures_init(
+    texture_creator: &TextureCreator<WindowContext>,
+) -> Result<(Texture<'_>, Texture<'_>), String> {
     let texture_off = texture_creator.load_texture("assets/pixel_off.png")?;
     let texture_on = texture_creator.load_texture("assets/pixel_on.png")?;
     Ok((texture_off, texture_on))
@@ -64,7 +64,7 @@ pub fn textures_init<'a>(
 pub fn events(sdl_context: &Sdl) -> Result<usize, String> {
     let mut event_pump = sdl_context.event_pump()?;
 
-    for event in event_pump.poll_iter() {
+    if let Some(event) = event_pump.poll_iter().next() {
         match event {
             Event::Quit { .. }
             | Event::KeyDown {

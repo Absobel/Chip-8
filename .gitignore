@@ -10,4 +10,4 @@ Cargo.lock
 **/*.rs.bk
 
 # Parce que ça va pas mal changer
-/assets/
+/assets/*
