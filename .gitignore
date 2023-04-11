@@ -11,3 +11,5 @@ Cargo.lock
 
 # Parce que ça va pas mal changer
 /assets/*
+
+.vscode

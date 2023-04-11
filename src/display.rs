@@ -1,3 +1,5 @@
+use crate::screen::Screen;
+
 use super::launch_options::*;
 use super::screen;
 
@@ -182,7 +184,7 @@ pub fn render(
     sprite: Rect,
 ) -> Result<(), String> {
     // top left of the screen is the origin
-    let screen_rect = Rect::from_center(position, sprite.width(), sprite.height());
+    let screen_rect = Rect::from_center(position, SIZE_PIXEL, SIZE_PIXEL);
 
     canvas.copy(texture, sprite, screen_rect)?;
 
@@ -214,12 +216,10 @@ pub fn display(
 }
 
 pub fn clear_screen(canvas: &mut WindowCanvas, texture_off: &Texture) -> Result<(), String> {
-    for x in 0..64 {
-        for y in 0..32 {
-            let position = Point::new(x * SIZE_PIXEL as i32, y * SIZE_PIXEL as i32);
-            let sprite = Rect::new(0, 0, SIZE_PIXEL, SIZE_PIXEL);
-            render(canvas, texture_off, position, sprite)?;
-        }
+    for (x, y) in Screen::iter_coord() {
+        let position = Point::new(x as i32 * SIZE_PIXEL as i32, y as i32 * SIZE_PIXEL as i32);
+        let sprite = Rect::new(0, 0, SIZE_PIXEL, SIZE_PIXEL);
+        render(canvas, texture_off, position, sprite)?;
     }
     canvas.present();
 

@@ -34,6 +34,10 @@ impl Screen {
         self.pixels[y][x].state = state;
     }
 
+    pub fn iter_coord() -> impl Iterator<Item = (u8, u8)> {
+        (0..32).flat_map(|y| (0..64).map(move |x| (x, y)))
+    }
+
     pub fn debug_display(&self) {
         if !DEBUG {
             print!("\x1B[2J\x1B[1;1H");
