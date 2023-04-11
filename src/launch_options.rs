@@ -1,9 +1,9 @@
 #![allow(dead_code)]
 #![allow(clippy::upper_case_acronyms)]
 
-//pub const ROM_PATH: &str = "roms/test_opcode.ch8";
+pub const ROM_PATH: &str = "roms/test_opcode.ch8";
 //pub const ROM_PATH: &str = "roms/autre/PONG";
-pub const ROM_PATH: &str = "roms/autre/INVADERS";
+//pub const ROM_PATH: &str = "roms/autre/INVADERS";
 
 pub const IPS: u64 = 500; // instructions per second
 
