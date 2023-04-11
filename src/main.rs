@@ -235,7 +235,7 @@ fn main() {
                 // 0x6XNN set register VX to 0xNN
                 if DEBUG {
                     println!(
-                        "0x{:03X} | 0x{:04X} | Setting register V{:01X} to 0x{:02X}",
+                        "0x{:03X} | 0x{:04X} | Setting register V{:01X} to 0x{:02X} = {NN}",
                         pc - 2,
                         instruction,
                         X,
@@ -468,13 +468,16 @@ fn main() {
             }
             0xD => {
                 // 0xDXYN display sprite at (VX, VY) with width 8 and height N
-                if DEBUG {
-                    println!("0x{:03X} | 0x{:04X} | Displaying sprite at (V{:01X}, V{:01X}) with width 8 and height {:01X}", pc-2, instruction, X, Y, N);
-                }
-
                 let mut guard = mutex_memory.lock().unwrap();
-                let mut cX = guard.read(V_adr[X]) % 64; // coord X
-                let mut cY = guard.read(V_adr[Y]) % 32; // coord Y
+                let VX = guard.read(V_adr[X]);
+                let VY = guard.read(V_adr[Y]);
+
+                if DEBUG {
+                    println!("0x{:03X} | 0x{:04X} | Displaying sprite at (V{:01X}, V{:01X}) = ({VX}, {VY}) with width 8 and height {:01X}", pc-2, instruction, X, Y, N);
+                }
+                
+                let mut cX = VX % 64; // coord X
+                let mut cY = VY % 32; // coord Y
                 let ccX = cX;
                 guard.write(V_adr[0xF], 0);
 
@@ -523,20 +526,22 @@ fn main() {
                 std::mem::drop(guard);
 
                 if instruction & 0x00FF == 0x009E {
-                    if DEBUG {
-                        println!("0x{:03X} | 0x{:04X} | Skipping next instruction if key with the value of V{:01X} ({:02X}) is pressed", pc-2, instruction, X, VX);
-                    }
-
                     if key_pressed == VX {
                         pc += 2;
                     }
-                } else if instruction & 0x00FF == 0x00A1 {
-                    if DEBUG {
-                        println!("0x{:03X} | 0x{:04X} | Skipping next instruction if key with the value of V{:01X} ({:02X}) is not pressed", pc-2, instruction, X, VX);
+                    if DEBUG && key_pressed == VX {
+                        println!("0x{:03X} | 0x{:04X} | Skipping next instruction because the key with the value of V{:01X} ({:02X}) is pressed", pc-2, instruction, X, VX);
+                    } else {
+                        println!("0x{:03X} | 0x{:04X} | Not skipping next instruction because the key with the value of V{:01X} ({:02X}) is not pressed", pc-2, instruction, X, VX);
                     }
-
+                } else if instruction & 0x00FF == 0x00A1 {
                     if key_pressed != VX {
                         pc += 2;
+                    }
+                    if DEBUG && key_pressed != VX {
+                        println!("0x{:03X} | 0x{:04X} | Skipping next instruction because the key with the value of V{:01X} ({:02X}) is not pressed", pc-2, instruction, X, VX);
+                    } else {
+                        println!("0x{:03X} | 0x{:04X} | Not skipping next instruction because the key with the value of V{:01X} ({:02X}) is pressed", pc-2, instruction, X, VX);
                     }
                 } else {
                     println!(
@@ -657,27 +662,32 @@ fn main() {
                         std::mem::drop(guard);
                     }
                     0x0055 | 0x0065 => {
-                        // 0xFX55 store V0 to VX in memory starting at address I
-                        // 0xFX65 store memory to V0 to VX starting at address I
+                        // 0xFX55 store V0 through VX in memory starting at address I
+                        // 0xFX65 store memory through V0 to VX starting at address I
                         let mut guard = mutex_memory.lock().unwrap();
                         let I = guard.read_word(I_adr);
                         if DEBUG {
-                            println!("0x{:03X} | 0x{:04X} | Storing V0 to V{:01X} in memory starting at address I", pc-2, instruction, X);
+                            let (action, particle) = if instruction & 0x00FF == 0x0055 {
+                                ("Storing", "to")
+                            } else {
+                                ("Loading", "from")
+                            };
+                            println!("0x{:03X} | 0x{:04X} | {action} V0 through V{:01X} {particle} memory starting at address I", pc-2, instruction, X);
                         }
-                        for (i, V_adr_i) in V_adr.iter().enumerate() {
+                        for (i, V_adr_i) in V_adr.iter().enumerate().take(X+1) {
                             let iu16 = i as u16;
                             if instruction & 0x00FF == 0x0055 {
-                                if DEBUG_VERBOSE {
-                                    println!("               | Storing V{:01X} in memory at address {:03X}+{:01X}", i, I, i);
-                                }
                                 let Vi = guard.read(*V_adr_i);
+                                if DEBUG_VERBOSE {
+                                    println!("               | Storing V{:01X} = 0x{:02X} ({Vi}) in memory at address {:03X}", i, Vi, I+i as u16);
+                                }
                                 guard.write(I + iu16, Vi);
                             } else {
                                 /* instruction & 0x00FF == 0x0065 */
-                                if DEBUG_VERBOSE {
-                                    println!("               | Storing memory at address {:03X}+{:01X} in V{:01X}", I, i, i);
-                                }
                                 let future_Vi = guard.read(I + iu16);
+                                if DEBUG_VERBOSE {
+                                    println!("               | Storing memory at address {:03X} = 0x{:02X} ({future_Vi}) in V{:01X}", I+i as u16, future_Vi, i);
+                                }
                                 guard.write(*V_adr_i, future_Vi);
                             }
                         }
@@ -701,8 +711,8 @@ fn main() {
         }
 
         // To have IPS instructions per second
-        if start.elapsed() < Duration::from_millis(1000 / IPS) {
-            thread::sleep(Duration::from_millis(1000 / IPS) - start.elapsed());
+        if let Some(time_elapsed) = Duration::from_millis(1000 / IPS).checked_sub(start.elapsed()) {
+            thread::sleep(time_elapsed);
         }
     }
 }

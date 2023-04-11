@@ -1,12 +1,14 @@
 #![allow(dead_code)]
 #![allow(clippy::upper_case_acronyms)]
 
-pub const ROM_PATH: &str = "roms/test_opcode.ch8";
+//pub const ROM_PATH: &str = "roms/test_opcode.ch8";
+//pub const ROM_PATH: &str = "roms/autre/PONG";
+pub const ROM_PATH: &str = "roms/autre/INVADERS";
 
-pub const IPS: u64 = 300; // instructions per second
+pub const IPS: u64 = 500; // instructions per second
 
 pub const DEBUG: bool = true;
-pub const DEBUG_VERBOSE: bool = false;
+pub const DEBUG_VERBOSE: bool = true;
 pub const TERMINAL: bool = false;
 
 pub const PIXEL_ON: (u8, u8, u8) = (0x21, 0x31, 0x34);
