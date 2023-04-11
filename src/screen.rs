@@ -17,6 +17,10 @@ impl Screen {
         }
     }
 
+    pub fn iter_coords() -> impl Iterator<Item = (u8, u8)> {
+        (0..32).flat_map(|x| (0..64).map(move |y| (y, x)))
+    }
+
     // Methods
     pub fn clear(&mut self) {
         for x in 0..32 {

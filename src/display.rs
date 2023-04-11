@@ -1,5 +1,6 @@
 use super::launch_options::*;
 use super::screen;
+use super::screen::Screen;
 
 use sdl2::{
     event::Event,
@@ -153,12 +154,8 @@ pub fn events(sdl_context: &Sdl) -> Result<usize, String> {
 pub fn display(
     canvas: &mut WindowCanvas,
     screen: &screen::Screen,
-    modified: Vec<(u8, u8)>,
 ) -> Result<(), String> {
-    if DEBUG_VERBOSE {
-        println!("               | modified: {:?}", modified);
-    }
-    for (x, y) in modified {
+    for (x, y) in Screen::iter_coords() {
         if screen.is_on(x, y) {
             canvas.set_draw_color(Color::RGB(PIXEL_ON.0, PIXEL_ON.1, PIXEL_ON.2));
         } else {

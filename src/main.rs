@@ -477,7 +477,6 @@ fn main() {
                 let mut cY = guard.read(V_adr[Y]) % 32; // coord Y
                 let ccX = cX;
                 guard.write(V_adr[0xF], 0);
-                let mut modified: Vec<(u8, u8)> = Vec::new();
 
                 'rows: for i in 0..N {
                     let row = guard.read(guard.read_word(I_adr) + i);
@@ -490,7 +489,6 @@ fn main() {
                             } else {
                                 screen.set(cX, cY, true);
                             }
-                            modified.push((cX, cY));
                         }
 
                         let new_cX = cX as usize + 1;
@@ -513,7 +511,7 @@ fn main() {
                 if TERMINAL {
                     screen.debug_display();
                 } else {
-                    display::display(&mut canvas, &screen, modified)
+                    display::display(&mut canvas, &screen)
                         .expect("Error while displaying");
                 }
             }
