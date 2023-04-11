@@ -1,17 +1,13 @@
-use crate::screen::Screen;
-
 use super::launch_options::*;
 use super::screen;
 
-use image::{Rgb, RgbImage};
 use sdl2::{
     event::Event,
-    image::LoadTexture,
     keyboard::Keycode,
     pixels::Color,
-    rect::{Point, Rect},
-    render::{Canvas, Texture, TextureCreator, WindowCanvas},
-    video::{Window, WindowContext},
+    rect::Rect,
+    render::{Canvas, WindowCanvas},
+    video::Window,
     Sdl,
 };
 
@@ -20,18 +16,6 @@ const SCREEN_HEIGHT: u32 = 640;
 const SIZE_PIXEL: u32 = 20;
 
 pub fn init() -> Result<(Sdl, Canvas<Window>), String> {
-    // generate pixel textures
-    let mut pixel_off = RgbImage::new(SIZE_PIXEL, SIZE_PIXEL);
-    let mut pixel_on = RgbImage::new(SIZE_PIXEL, SIZE_PIXEL);
-    for x in 0..SIZE_PIXEL {
-        for y in 0..SIZE_PIXEL {
-            pixel_off.put_pixel(x, y, Rgb(PIXEL_OFF));
-            pixel_on.put_pixel(x, y, Rgb(PIXEL_ON));
-        }
-    }
-    pixel_off.save("assets/pixel_off.png").unwrap();
-    pixel_on.save("assets/pixel_on.png").unwrap();
-
     let sdl_context = sdl2::init()?;
     let video_subsystem = sdl_context.video()?;
     let mut window = video_subsystem
@@ -48,19 +32,8 @@ pub fn init() -> Result<(Sdl, Canvas<Window>), String> {
         .build()
         .expect("Could not make a canvas");
 
-    let [r, g, b] = PIXEL_OFF;
-    canvas.set_draw_color(Color::RGB(r, g, b));
-    canvas.clear();
-    canvas.present();
+    clear_screen(&mut canvas);
     Ok((sdl_context, canvas))
-}
-
-pub fn textures_init(
-    texture_creator: &TextureCreator<WindowContext>,
-) -> Result<(Texture<'_>, Texture<'_>), String> {
-    let texture_off = texture_creator.load_texture("assets/pixel_off.png")?;
-    let texture_on = texture_creator.load_texture("assets/pixel_on.png")?;
-    Ok((texture_off, texture_on))
 }
 
 pub fn events(sdl_context: &Sdl) -> Result<usize, String> {
@@ -177,23 +150,8 @@ pub fn events(sdl_context: &Sdl) -> Result<usize, String> {
     Ok(0xFF)
 }
 
-pub fn render(
-    canvas: &mut WindowCanvas,
-    texture: &Texture,
-    position: Point,
-    sprite: Rect,
-) -> Result<(), String> {
-    // top left of the screen is the origin
-    let screen_rect = Rect::from_center(position, SIZE_PIXEL, SIZE_PIXEL);
-
-    canvas.copy(texture, sprite, screen_rect)?;
-
-    Ok(())
-}
-
 pub fn display(
     canvas: &mut WindowCanvas,
-    textures: (&Texture, &Texture),
     screen: &screen::Screen,
     modified: Vec<(u8, u8)>,
 ) -> Result<(), String> {
@@ -201,27 +159,25 @@ pub fn display(
         println!("               | modified: {:?}", modified);
     }
     for (x, y) in modified {
-        let texture = if screen.is_on(x, y) {
-            textures.1
+        if screen.is_on(x, y) {
+            canvas.set_draw_color(Color::RGB(PIXEL_ON.0, PIXEL_ON.1, PIXEL_ON.2));
         } else {
-            textures.0
-        };
-        let position = Point::new(x as i32 * SIZE_PIXEL as i32, y as i32 * SIZE_PIXEL as i32);
-        let sprite = Rect::new(0, 0, SIZE_PIXEL, SIZE_PIXEL);
-        render(canvas, texture, position, sprite)?;
+            canvas.set_draw_color(Color::RGB(PIXEL_OFF.0, PIXEL_OFF.1, PIXEL_OFF.2));
+        }
+        let pixel_emplacement = Rect::new(
+            x as i32 * SIZE_PIXEL as i32,
+            y as i32 * SIZE_PIXEL as i32,
+            SIZE_PIXEL,
+            SIZE_PIXEL,
+        );
+        canvas.fill_rect(pixel_emplacement)?;
     }
     canvas.present();
-
     Ok(())
 }
 
-pub fn clear_screen(canvas: &mut WindowCanvas, texture_off: &Texture) -> Result<(), String> {
-    for (x, y) in Screen::iter_coord() {
-        let position = Point::new(x as i32 * SIZE_PIXEL as i32, y as i32 * SIZE_PIXEL as i32);
-        let sprite = Rect::new(0, 0, SIZE_PIXEL, SIZE_PIXEL);
-        render(canvas, texture_off, position, sprite)?;
-    }
+pub fn clear_screen(canvas: &mut WindowCanvas) {
+    canvas.set_draw_color(Color::RGB(PIXEL_OFF.0, PIXEL_OFF.1, PIXEL_OFF.2));
+    canvas.clear();
     canvas.present();
-
-    Ok(())
 }

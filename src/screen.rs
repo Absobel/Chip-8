@@ -10,12 +10,14 @@ pub struct Screen {
 }
 
 impl Screen {
+    // Static methods
     pub fn new() -> Screen {
         Screen {
             pixels: [[Pixel { state: false }; 64]; 32],
         }
     }
 
+    // Methods
     pub fn clear(&mut self) {
         for x in 0..32 {
             for y in 0..64 {
@@ -32,10 +34,6 @@ impl Screen {
         let x = x as usize;
         let y = y as usize;
         self.pixels[y][x].state = state;
-    }
-
-    pub fn iter_coord() -> impl Iterator<Item = (u8, u8)> {
-        (0..32).flat_map(|y| (0..64).map(move |x| (x, y)))
     }
 
     pub fn debug_display(&self) {

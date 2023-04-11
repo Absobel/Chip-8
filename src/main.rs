@@ -32,9 +32,6 @@ fn main() {
     let mut screen = Screen::new();
 
     let (sdl_context, mut canvas) = display::init().expect("Could not init display");
-    let texture_creator = canvas.texture_creator();
-    let (texture_off, texture_on) =
-        display::textures_init(&texture_creator).expect("Failed to create pixel textures");
 
     // INIT MEMORY
     let mut memory: Memory = Memory::new();
@@ -124,8 +121,7 @@ fn main() {
                             println!("0x{:03X} | 0x{:04X} | Screen clearing", pc - 2, instruction);
                         }
                         screen.clear();
-                        display::clear_screen(&mut canvas, &texture_off)
-                            .expect("Failed to clear screen");
+                        display::clear_screen(&mut canvas)
                     }
                     // Return from subroutine
                     0x00EE => {
@@ -517,7 +513,7 @@ fn main() {
                 if TERMINAL {
                     screen.debug_display();
                 } else {
-                    display::display(&mut canvas, (&texture_off, &texture_on), &screen, modified)
+                    display::display(&mut canvas, &screen, modified)
                         .expect("Error while displaying");
                 }
             }
