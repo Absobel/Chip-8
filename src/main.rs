@@ -2,41 +2,14 @@
 mod custom_errors;
 mod display;
 mod events;
+mod instructions;
 mod launch_options;
 mod memory;
 mod screen;
-mod instructions {
-    pub mod i0;
-    pub mod i1;
-    pub mod i2;
-    pub mod i34;
-    pub mod i59;
-    pub mod i6;
-    pub mod i7;
-    pub mod i8 {
-        pub mod i8_0;
-        pub mod i8_123;
-        pub mod i8_457;
-        pub mod i8_6E;
-        pub mod i8_A;
-    }
-}
 
-use instructions::{
-    i0::*,
-    i1::*,
-    i2::*,
-    i34::*,
-    i59::*,
-    i6::*,
-    i7::*,
-    i8::{i8_0::*, i8_123::*, i8_457::*, i8_6E::*, i8_A::*},
-};
+use instructions::{i8::*, *};
 use launch_options::*;
-use memory::Memory;
-use screen::Screen;
 
-use rand::Rng;
 use std::{
     sync::{Arc, Mutex},
     thread,
@@ -45,7 +18,7 @@ use std::{
 
 use crate::custom_errors::NonUsedInstructionError;
 
-fn load_font(memory: &mut Memory) {
+fn load_font(memory: &mut memory::Memory) {
     for (i, byte) in FONT_SET.iter().enumerate() {
         memory.write(i as u16 + FONT_ADRESS, *byte);
     }
@@ -59,12 +32,12 @@ fn main() {
     // }
 
     // INIT DISPLAY
-    let mut screen = Screen::new();
+    let mut screen = screen::Screen::new();
 
     let (sdl_context, mut canvas) = display::init().expect("Could not init display");
 
     // INIT MEMORY
-    let mut memory: Memory = Memory::new();
+    let mut memory: memory::Memory = memory::Memory::new();
     memory.load_rom(ROM_PATH).unwrap();
     load_font(&mut memory);
 
@@ -122,22 +95,11 @@ fn main() {
     'game: loop {
         let start = Instant::now();
 
-        // Events
-        let event_key = events::events(&sdl_context);
-        let key_pressed: u8 = match event_key {
-            Ok(key) => key as u8,
-            Err(_) => break 'game,
-        };
-
         let guard = mutex_memory.lock().unwrap();
         let instruction = guard.read_word(pc);
         std::mem::drop(guard);
 
         let X = ((instruction & 0x0F00) >> 8) as usize;
-        let Y = ((instruction & 0x00F0) >> 4) as usize;
-        let N = instruction & 0x000F;
-        let NN = (instruction & 0x00FF) as usize;
-        let NNN = instruction & 0x0FFF;
 
         pc += 2;
         let opcode = (instruction & 0xF000) >> 12;
@@ -146,45 +108,45 @@ fn main() {
             // 0x00E0 : Clear screen
             // 0x00EE : Return from subroutine
             0 => {
-                if let Err(e) = i0(instruction, &mut pc, &mut stack, &mut screen, &mut canvas) {
+                if let Err(e) = i0::r(instruction, &mut pc, &mut stack, &mut screen, &mut canvas) {
                     panic!("{e}");
                 }
             }
             // 0x1NNN jump to adress 0xNNN
-            1 => i1(instruction, &mut pc, NNN),
+            1 => i1::r(instruction, &mut pc),
             // 0x2NNN call subroutine at 0xNNN
-            2 => i2(instruction, &mut pc, &mut stack, NNN),
+            2 => i2::r(instruction, &mut pc, &mut stack),
             // 0x3XNN skip next instruction if VX == NN
             // 0x4XNN skip next instruction if VX != NN
-            3 | 4 => i34(instruction, &mut pc, &mutex_memory, X, NN, opcode, &V_adr),
+            3 | 4 => i34::r(instruction, &mut pc, &mutex_memory, opcode, &V_adr),
             // 0x5XY0 skip next instruction if VX == VY
             // 0x9XY0 skip next instruction if VX != VY
             5 | 9 => {
-                if let Err(e) = i59(instruction, &mut pc, X, Y, opcode, &mutex_memory, V_adr) {
+                if let Err(e) = i59::r(instruction, &mut pc, opcode, &mutex_memory, V_adr) {
                     panic!("{e}");
                 }
             }
             // 0x6XNN set register VX to 0xNN
-            6 => i6(instruction, pc, &mutex_memory, X, NN, &V_adr),
+            6 => i6::r(instruction, pc, &mutex_memory, &V_adr),
             // 0x7XNN add 0xNN to register VX (carry flag is not changed)
-            7 => i7(instruction, pc, &mutex_memory, X, NN, &V_adr),
+            7 => i7::r(instruction, pc, &mutex_memory, &V_adr),
             0x8 => {
                 match instruction & 0x000F {
                     // 0x8XY0 set VX to VY
-                    0 => i8_0(&mutex_memory, pc, &instruction, X, Y, &V_adr),
+                    0 => i8_0::r(&mutex_memory, pc, &instruction, &V_adr),
                     // 0x8XY1 set VX to VX | VY
                     // 0x8XY2 set VX to VX & VY
                     // 0x8XY3 set VX to VX ^ VY
-                    1 | 2 | 3 => i8_123(instruction, pc, &mutex_memory, &V_adr, X, Y),
+                    1 | 2 | 3 => i8_123::r(instruction, pc, &mutex_memory, &V_adr),
                     // 0x8XY4 Add VY to VX. VF is set to 1 when there's a carry, and to 0 when there isn't
                     // 0x8XY5 Set VX to VX - VY, set VF to 0 when there's a borrow, and 1 when there isn't
                     // 0x8XY7           VY - VX
-                    4 | 5 | 7 => i8_457(instruction, pc, &mutex_memory, &V_adr, X, Y),
+                    4 | 5 | 7 => i8_457::r(instruction, pc, &mutex_memory, &V_adr),
                     // 0x8XY6 OLD : VX is set to VY and shifted right by 1. VF is set to the bit shifted out
                     //        NEW : VX is shifted right by 1. VF is set to the bit shifted out
                     // 0x8XYE OLD : VX is set to VY and shifted left by 1. VF is set to the bit shifted out
                     //        NEW : VX is shifted left by 1. VF is set to the bit shifted out
-                    6 | 0xE => i8_6E(instruction, pc, &mutex_memory, &V_adr, X, Y),
+                    6 | 0xE => i8_6E::r(instruction, pc, &mutex_memory, &V_adr),
                     _ => panic!(
                         "{}",
                         NonUsedInstructionError {
@@ -195,111 +157,36 @@ fn main() {
                 }
             }
             // 0xANNN set I to 0x0NNN
-            0xA => i8_A(&mutex_memory, pc, instruction, NNN, I_adr),
-            0xB => {
-                if CB_B_NN == CB::OLD {
-                    // 0xBNNN jump to 0x0NNN + V0
-                    if DEBUG {
-                        println!(
-                            "0x{:03X} | 0x{:04X} | Jumping to 0x{:03X} + V0",
-                            pc - 2,
-                            instruction,
-                            NNN
-                        );
-                    }
-
-                    let guard = mutex_memory.lock().unwrap();
-                    let V0 = guard.read(V_adr[0]);
-                    std::mem::drop(guard);
-
-                    pc = NNN + V0 as u16;
-                } else if CB_B_NN == CB::NEW {
-                    // 0xBXNN jump to 0xXNN + VX
-                    if DEBUG {
-                        println!(
-                            "0x{:03X} | 0x{:04X} | Jumping to 0x{:03X} + V{:01X}",
-                            pc - 2,
-                            instruction,
-                            NNN,
-                            X
-                        );
-                    }
-
-                    let guard = mutex_memory.lock().unwrap();
-                    let VX = guard.read(V_adr[X]);
-                    std::mem::drop(guard);
-
-                    pc = NNN + VX as u16;
-                } else {
-                }
-            }
-            0xC => {
-                // 0xCXNN set VX to random number and binary-AND's it with NN
-                if DEBUG {
-                    println!("0x{:03X} | 0x{:04X} | Setting V{:01X} to random number and binary-AND's it with 0x{:02X}", pc-2, instruction, X, NN);
-                }
-
-                let mut rng = rand::thread_rng();
-                let random: u8 = rng.gen();
-
-                let mut guard = mutex_memory.lock().unwrap();
-                guard.write(V_adr[X], random & NN as u8);
-                std::mem::drop(guard);
-            }
-            0xD => {
-                // 0xDXYN display sprite at (VX, VY) with width 8 and height N
-                let mut guard = mutex_memory.lock().unwrap();
-                let VX = guard.read(V_adr[X]);
-                let VY = guard.read(V_adr[Y]);
-
-                if DEBUG {
-                    println!("0x{:03X} | 0x{:04X} | Displaying sprite at (V{:01X}, V{:01X}) = ({VX}, {VY}) with width 8 and height {:01X}", pc-2, instruction, X, Y, N);
-                }
-
-                let mut cX = VX % 64; // coord X
-                let mut cY = VY % 32; // coord Y
-                let ccX = cX;
-                guard.write(V_adr[0xF], 0);
-
-                'rows: for i in 0..N {
-                    let row = guard.read(guard.read_word(I_adr) + i);
-                    'columns: for j in 0..8 {
-                        let pixel = (row >> (7 - j)) & 0x1;
-                        if pixel == 1 {
-                            if screen.is_on(cX, cY) {
-                                guard.write(V_adr[0xF], 1);
-                                screen.set(cX, cY, false);
-                            } else {
-                                screen.set(cX, cY, true);
-                            }
-                        }
-
-                        let new_cX = cX as usize + 1;
-                        if new_cX == 64 {
-                            break 'columns;
-                        } else {
-                            cX = new_cX as u8;
-                        }
-                    }
-                    cX = ccX;
-                    let new_cY = cY as usize + 1;
-                    if new_cY == 32 {
-                        break 'rows;
-                    } else {
-                        cY = new_cY as u8;
-                    }
-                }
-                std::mem::drop(guard);
-
-                if TERMINAL {
-                    screen.debug_display();
-                } else {
-                    display::display(&mut canvas, &screen).expect("Error while displaying");
-                }
-            }
+            0xA => iA::r(&mutex_memory, pc, instruction, I_adr),
+            // 0xBNNN OLD: jump to 0x0NNN + V0
+            // 0xBXNN NEW: jump to 0xXNN + VX
+            0xB => iB::r(instruction, &mut pc, &mutex_memory, &V_adr),
+            // 0xCXNN set VX to random number and binary-AND's it with NN
+            0xC => iC::r(instruction, pc, &mutex_memory, &V_adr),
+            // 0xDXYN display sprite at (VX, VY) with width 8 and height N
+            0xD => iD::r(
+                &mutex_memory,
+                pc,
+                instruction,
+                I_adr,
+                &V_adr,
+                &mut screen,
+                &mut canvas,
+            ),
+            // 0xEX9E skip next instruction if key with the value of VX is pressed
+            // 0xEXA1 skip next instruction if key with the value of VX is not pressed
             0xE => {
-                // 0xEX9E skip next instruction if key with the value of VX is pressed
-                // 0xEXA1 skip next instruction if key with the value of VX is not pressed
+                // Events
+                let event_key = events::events(&sdl_context);
+                let key_pressed: u8 = match event_key {
+                    Ok(key) => key as u8,
+                    Err(_) => break 'game,
+                };
+                sdl_context
+                    .event()
+                    .expect("Error getting event")
+                    .flush_event(sdl2::event::EventType::KeyDown);
+
                 let guard = mutex_memory.lock().unwrap();
                 let VX = guard.read(V_adr[X]);
                 std::mem::drop(guard);
@@ -347,6 +234,17 @@ fn main() {
                     }
                     0x000A => {
                         // 0xFX0A wait for a key press, store the value of the key in VX
+
+                        let event_key = events::events(&sdl_context);
+                        let key_pressed: u8 = match event_key {
+                            Ok(key) => key as u8,
+                            Err(_) => break 'game,
+                        };
+                        sdl_context
+                            .event()
+                            .expect("Error getting event")
+                            .flush_event(sdl2::event::EventType::KeyDown);
+
                         if DEBUG {
                             println!("0x{:03X} | 0x{:04X} | Waiting for a key press, storing the value of the key in V{:01X}", pc-2, instruction, X);
                         }

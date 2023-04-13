@@ -6,15 +6,16 @@ use std::sync::Mutex;
 
 // 0x3XNN skip next instruction if VX == NN
 // 0x4XNN skip next instruction if VX != NN
-pub fn i34(
+pub fn r(
     instruction: u16,
     pc: &mut u16,
     mutex_memory: &Arc<Mutex<Memory>>,
-    X: usize,
-    NN: usize,
     opcode: u16,
     V_adr: &[u16; 16],
 ) {
+    let X = ((instruction & 0x0F00) >> 8) as usize;
+    let NN = (instruction & 0x00FF) as usize;
+
     let guard = mutex_memory.lock().unwrap();
     let VX = guard.read(V_adr[X]);
     std::mem::drop(guard);

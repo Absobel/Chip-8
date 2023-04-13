@@ -4,15 +4,16 @@ use crate::custom_errors::NonUsedInstructionError;
 use crate::launch_options::*;
 use crate::memory::Memory;
 
-pub fn i59(
+pub fn r(
     instruction: u16,
     pc: &mut u16,
-    X: usize,
-    Y: usize,
     opcode: u16,
     mutex_memory: &Arc<Mutex<Memory>>,
     V_adr: [u16; 16],
 ) -> Result<(), NonUsedInstructionError> {
+    let X = ((instruction & 0x0F00) >> 8) as usize;
+    let Y = ((instruction & 0x00F0) >> 4) as usize;
+
     let guard = mutex_memory.lock().unwrap();
     let VX = guard.read(V_adr[X]);
     let VY = guard.read(V_adr[Y]);

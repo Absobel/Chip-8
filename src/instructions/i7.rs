@@ -3,15 +3,11 @@ use super::super::memory::Memory;
 
 use std::sync::{Arc, Mutex};
 
-pub fn i7(
-    instruction: u16,
-    pc: u16,
-    mutex_memory: &Arc<Mutex<Memory>>,
-    X: usize,
-    NN: usize,
-    V_adr: &[u16; 16],
-) {
-    // 0x7XNN add 0xNN to register VX (carry flag is not changed)
+// 0x7XNN add 0xNN to register VX (carry flag is not changed)
+pub fn r(instruction: u16, pc: u16, mutex_memory: &Arc<Mutex<Memory>>, V_adr: &[u16; 16]) {
+    let X = ((instruction & 0x0F00) >> 8) as usize;
+    let NN = (instruction & 0x00FF) as usize;
+
     if DEBUG {
         println!(
             "0x{:03X} | 0x{:04X} | Adding 0x{:02X} to register V{:01X}",

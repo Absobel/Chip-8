@@ -6,7 +6,7 @@ use super::super::screen;
 use sdl2::render::Canvas;
 use sdl2::video::Window;
 
-pub fn i0(
+pub fn r(
     instruction: u16,
     pc: &mut u16,
     stack: &mut Vec<u16>,

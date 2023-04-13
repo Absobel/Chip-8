@@ -3,14 +3,10 @@ use crate::memory::Memory;
 
 use std::sync::{Arc, Mutex};
 
-pub fn i8_6E(
-    instruction: u16,
-    pc: u16,
-    mutex_memory: &Arc<Mutex<Memory>>,
-    V_adr: &[u16; 16],
-    X: usize,
-    Y: usize,
-) {
+pub fn r(instruction: u16, pc: u16, mutex_memory: &Arc<Mutex<Memory>>, V_adr: &[u16; 16]) {
+    let X = ((instruction & 0x0F00) >> 8) as usize;
+    let Y = ((instruction & 0x00F0) >> 4) as usize;
+
     let mut guard = mutex_memory.lock().unwrap();
     let VX = guard.read(V_adr[X]);
     let VY = guard.read(V_adr[Y]);
