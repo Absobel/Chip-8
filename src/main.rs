@@ -7,7 +7,7 @@ mod launch_options;
 mod memory;
 mod screen;
 
-use instructions::{i8::*, *};
+use instructions::{i8::*, iF::*, *};
 use launch_options::*;
 
 use std::{
@@ -35,6 +35,9 @@ fn main() {
     let mut screen = screen::Screen::new();
 
     let (sdl_context, mut canvas) = display::init().expect("Could not init display");
+
+    // INIT EVENTS
+    let mut dico_events = events::init();
 
     // INIT MEMORY
     let mut memory: memory::Memory = memory::Memory::new();
@@ -94,6 +97,10 @@ fn main() {
 
     'game: loop {
         let start = Instant::now();
+
+        if events::update(&sdl_context, &mut dico_events).is_err() {
+            break 'game;
+        }
 
         let guard = mutex_memory.lock().unwrap();
         let instruction = guard.read_word(pc);
@@ -175,88 +182,13 @@ fn main() {
             ),
             // 0xEX9E skip next instruction if key with the value of VX is pressed
             // 0xEXA1 skip next instruction if key with the value of VX is not pressed
-            0xE => {
-                // Events
-                let event_key = events::events(&sdl_context);
-                let key_pressed: u8 = match event_key {
-                    Ok(key) => key as u8,
-                    Err(_) => break 'game,
-                };
-                sdl_context
-                    .event()
-                    .expect("Error getting event")
-                    .flush_event(sdl2::event::EventType::KeyDown);
-
-                let guard = mutex_memory.lock().unwrap();
-                let VX = guard.read(V_adr[X]);
-                std::mem::drop(guard);
-
-                if instruction & 0x00FF == 0x009E {
-                    if key_pressed == VX {
-                        pc += 2;
-                    }
-                    if DEBUG && key_pressed == VX {
-                        println!("0x{:03X} | 0x{:04X} | Skipping next instruction because the key with the value of V{:01X} ({:02X}) is pressed", pc-2, instruction, X, VX);
-                    } else {
-                        println!("0x{:03X} | 0x{:04X} | Not skipping next instruction because the key with the value of V{:01X} ({:02X}) is not pressed", pc-2, instruction, X, VX);
-                    }
-                } else if instruction & 0x00FF == 0x00A1 {
-                    if key_pressed != VX {
-                        pc += 2;
-                    }
-                    if DEBUG && key_pressed != VX {
-                        println!("0x{:03X} | 0x{:04X} | Skipping next instruction because the key with the value of V{:01X} ({:02X}) is not pressed", pc-2, instruction, X, VX);
-                    } else {
-                        println!("0x{:03X} | 0x{:04X} | Not skipping next instruction because the key with the value of V{:01X} ({:02X}) is pressed", pc-2, instruction, X, VX);
-                    }
-                } else {
-                    panic!(
-                        "{}",
-                        NonUsedInstructionError {
-                            pc: pc - 2,
-                            instruction
-                        }
-                    )
-                }
-            }
+            0xE => iE::r(instruction, &mut pc, &mutex_memory, &V_adr, &dico_events),
             0xF => {
                 match instruction & 0x00FF {
-                    0x0007 => {
-                        // 0xFX07 set VX to the value of the delay timer
-                        if DEBUG {
-                            println!("0x{:03X} | 0x{:04X} | Setting V{:01X} to the value of the delay timer", pc-2, instruction, X);
-                        }
-
-                        let mut guard = mutex_memory.lock().unwrap();
-                        let timer_val = guard.read(timer_adr);
-                        guard.write(V_adr[X], timer_val);
-                        std::mem::drop(guard);
-                    }
-                    0x000A => {
-                        // 0xFX0A wait for a key press, store the value of the key in VX
-
-                        let event_key = events::events(&sdl_context);
-                        let key_pressed: u8 = match event_key {
-                            Ok(key) => key as u8,
-                            Err(_) => break 'game,
-                        };
-                        sdl_context
-                            .event()
-                            .expect("Error getting event")
-                            .flush_event(sdl2::event::EventType::KeyDown);
-
-                        if DEBUG {
-                            println!("0x{:03X} | 0x{:04X} | Waiting for a key press, storing the value of the key in V{:01X}", pc-2, instruction, X);
-                        }
-
-                        let mut guard = mutex_memory.lock().unwrap();
-                        if key_pressed != 0xFF {
-                            guard.write(V_adr[X], key_pressed);
-                        } else {
-                            pc -= 2;
-                        }
-                        std::mem::drop(guard);
-                    }
+                    // 0xFX07 set VX to the value of the delay timer
+                    0x0007 => iF_07::r(instruction, pc, &mutex_memory, &V_adr, timer_adr),
+                    // 0xFX0A wait for a key press, store the value of the key in VX
+                    0x000A => iF_0A::r(instruction, &mut pc, &mutex_memory, &V_adr, &dico_events),
                     0x0015 | 0x0018 => {
                         // 0xFX15 set the delay timer to VX
                         // 0xFX18 set the sound timer to VX

@@ -2,8 +2,10 @@
 #![allow(clippy::upper_case_acronyms)]
 
 //pub const ROM_PATH: &str = "roms/test_opcode.ch8";
-//pub const ROM_PATH: &str = "roms/autre/PONG";
+//pub const ROM_PATH: &str = "roms/autre/PONG2";          // Problème d'affichage des points
 pub const ROM_PATH: &str = "roms/autre/INVADERS";
+//pub const ROM_PATH: &str = "roms/autre/TETRIS";
+//pub const ROM_PATH: &str = "roms/programs/Keypad Test [Hap, 2006].ch8";  // Affiche mal somehow ??
 
 pub const IPS: u64 = 500; // instructions per second
 

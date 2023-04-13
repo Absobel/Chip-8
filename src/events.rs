@@ -1,86 +1,77 @@
+use crate::custom_errors::*;
+
 use sdl2::{event::Event, keyboard::Keycode, Sdl};
+use std::collections::HashMap;
 
-pub fn events(sdl_context: &Sdl) -> Result<usize, String> {
-    let mut event_pump = sdl_context.event_pump().expect("Failed to get event pump");
+pub fn init() -> HashMap<u8, bool> {
+    let mut dico_events = HashMap::new();
 
-    let maybe_event = event_pump.poll_iter().next();
-    match maybe_event {
-        Some(event) => handle_event(event),
-        None => Ok(0xFF),
+    for i in 0..16u8 {
+        dico_events.insert(i, false);
     }
+
+    dico_events
 }
 
-pub fn handle_event(event: Event) -> Result<usize, String> {
-    match event {
-        Event::Quit { .. }
-        | Event::KeyDown {
-            keycode: Some(Keycode::Escape),
-            ..
-        } => Err("Quit".to_string()),
-        Event::KeyDown {
-            keycode: Some(Keycode::Num1),
-            ..
-        } => Ok(0x1),
-        Event::KeyDown {
-            keycode: Some(Keycode::Num2),
-            ..
-        } => Ok(0x2),
-        Event::KeyDown {
-            keycode: Some(Keycode::Num3),
-            ..
-        } => Ok(0x3),
-        Event::KeyDown {
-            keycode: Some(Keycode::Num4),
-            ..
-        } => Ok(0xC),
-        Event::KeyDown {
-            keycode: Some(Keycode::A),
-            ..
-        } => Ok(0x4),
-        Event::KeyDown {
-            keycode: Some(Keycode::Z),
-            ..
-        } => Ok(0x5),
-        Event::KeyDown {
-            keycode: Some(Keycode::E),
-            ..
-        } => Ok(0x6),
-        Event::KeyDown {
-            keycode: Some(Keycode::R),
-            ..
-        } => Ok(0xD),
-        Event::KeyDown {
-            keycode: Some(Keycode::Q),
-            ..
-        } => Ok(0x7),
-        Event::KeyDown {
-            keycode: Some(Keycode::S),
-            ..
-        } => Ok(0x8),
-        Event::KeyDown {
-            keycode: Some(Keycode::D),
-            ..
-        } => Ok(0x9),
-        Event::KeyDown {
-            keycode: Some(Keycode::F),
-            ..
-        } => Ok(0xE),
-        Event::KeyDown {
-            keycode: Some(Keycode::W),
-            ..
-        } => Ok(0xA),
-        Event::KeyDown {
-            keycode: Some(Keycode::X),
-            ..
-        } => Ok(0x0),
-        Event::KeyDown {
-            keycode: Some(Keycode::C),
-            ..
-        } => Ok(0xB),
-        Event::KeyDown {
-            keycode: Some(Keycode::V),
-            ..
-        } => Ok(0xF),
-        _ => Ok(0xFF),
+
+pub fn update(sdl_context: &Sdl, dico_events: &mut HashMap<u8, bool>) -> Result<(), QuitGameError> {
+    let mut event_pump = sdl_context.event_pump().expect("Failed to get event pump");
+
+    while let Some(event) = event_pump.poll_iter().next() {
+        match event {
+            Event::Quit { .. } 
+            | Event::KeyDown {keycode: Some(Keycode::Escape),..} => return Err(QuitGameError),
+
+            Event::KeyDown {keycode: Some(Keycode::Num1),..} => dico_events.insert(0x1, true).expect("Failed to insert key in dico_events"),
+            Event::KeyUp {keycode: Some(Keycode::Num1),..} => dico_events.insert(0x1, false).expect("Failed to insert key in dico_events"),
+
+            Event::KeyDown {keycode: Some(Keycode::Num2),..} => dico_events.insert(0x2, true).expect("Failed to insert key in dico_events"),
+            Event::KeyUp {keycode: Some(Keycode::Num2),..} => dico_events.insert(0x2, false).expect("Failed to insert key in dico_events"),
+
+            Event::KeyDown {keycode: Some(Keycode::Num3),..} => dico_events.insert(0x3, true).expect("Failed to insert key in dico_events"),
+            Event::KeyUp {keycode: Some(Keycode::Num3),..} => dico_events.insert(0x3, false).expect("Failed to insert key in dico_events"),
+
+            Event::KeyDown {keycode: Some(Keycode::Num4),..} => dico_events.insert(0xC, true).expect("Failed to insert key in dico_events"),
+            Event::KeyUp {keycode: Some(Keycode::Num4),..} => dico_events.insert(0xC, false).expect("Failed to insert key in dico_events"),
+
+            Event::KeyDown {keycode: Some(Keycode::A),..} => dico_events.insert(0x4, true).expect("Failed to insert key in dico_events"),
+            Event::KeyUp {keycode: Some(Keycode::A),..} => dico_events.insert(0x4, false).expect("Failed to insert key in dico_events"),
+
+            Event::KeyDown {keycode: Some(Keycode::Z),..} => dico_events.insert(0x5, true).expect("Failed to insert key in dico_events"),
+            Event::KeyUp {keycode: Some(Keycode::Z),..} => dico_events.insert(0x5, false).expect("Failed to insert key in dico_events"),
+
+            Event::KeyDown {keycode: Some(Keycode::E),..} => dico_events.insert(0x6, true).expect("Failed to insert key in dico_events"),
+            Event::KeyUp {keycode: Some(Keycode::E),..} => dico_events.insert(0x6, false).expect("Failed to insert key in dico_events"),
+
+            Event::KeyDown {keycode: Some(Keycode::R),..} => dico_events.insert(0xD, true).expect("Failed to insert key in dico_events"),
+            Event::KeyUp {keycode: Some(Keycode::R),..} => dico_events.insert(0xD, false).expect("Failed to insert key in dico_events"),
+
+            Event::KeyDown {keycode: Some(Keycode::Q),..} => dico_events.insert(0x7, true).expect("Failed to insert key in dico_events"),
+            Event::KeyUp {keycode: Some(Keycode::Q),..} => dico_events.insert(0x7, false).expect("Failed to insert key in dico_events"),
+
+            Event::KeyDown {keycode: Some(Keycode::S),..} => dico_events.insert(0x8, true).expect("Failed to insert key in dico_events"),
+            Event::KeyUp {keycode: Some(Keycode::S),..} => dico_events.insert(0x8, false).expect("Failed to insert key in dico_events"),
+
+            Event::KeyDown {keycode: Some(Keycode::D),..} => dico_events.insert(0x9, true).expect("Failed to insert key in dico_events"),
+            Event::KeyUp {keycode: Some(Keycode::D),..} => dico_events.insert(0x9, false).expect("Failed to insert key in dico_events"),
+
+            Event::KeyDown {keycode: Some(Keycode::F),..} => dico_events.insert(0xE, true).expect("Failed to insert key in dico_events"),
+            Event::KeyUp {keycode: Some(Keycode::F),..} => dico_events.insert(0xE, false).expect("Failed to insert key in dico_events"),
+
+            Event::KeyDown {keycode: Some(Keycode::W),..} => dico_events.insert(0xA, true).expect("Failed to insert key in dico_events"),
+            Event::KeyUp {keycode: Some(Keycode::W),..} => dico_events.insert(0xA, false).expect("Failed to insert key in dico_events"),
+
+            Event::KeyDown {keycode: Some(Keycode::X),..} => dico_events.insert(0x0, true).expect("Failed to insert key in dico_events"),
+            Event::KeyUp {keycode: Some(Keycode::X),..} => dico_events.insert(0x0, false).expect("Failed to insert key in dico_events"),
+
+            Event::KeyDown {keycode: Some(Keycode::C),..} => dico_events.insert(0xB, true).expect("Failed to insert key in dico_events"),
+            Event::KeyUp {keycode: Some(Keycode::C),..} => dico_events.insert(0xB, false).expect("Failed to insert key in dico_events"),
+
+            Event::KeyDown {keycode: Some(Keycode::V),..} => dico_events.insert(0xF, true).expect("Failed to insert key in dico_events"),
+            Event::KeyUp {keycode: Some(Keycode::V),..} => dico_events.insert(0xF, false).expect("Failed to insert key in dico_events"),
+
+            _ => {true}
+        };
     }
+    Ok(())
 }

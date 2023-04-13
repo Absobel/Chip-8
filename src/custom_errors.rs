@@ -15,3 +15,5 @@ impl fmt::Display for NonUsedInstructionError {
         )
     }
 }
+
+pub struct QuitGameError;
