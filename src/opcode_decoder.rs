@@ -5,6 +5,7 @@ use crate::screen;
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 
+#[allow(clippy::too_many_arguments)]
 pub fn decode(
     opcode: u16,
     instruction: u16,
