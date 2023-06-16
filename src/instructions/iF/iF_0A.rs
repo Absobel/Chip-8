@@ -1,11 +1,17 @@
 use crate::launch_options::*;
 use crate::memory::Memory;
 
-use std::sync::{Arc, Mutex};
 use std::collections::HashMap;
+use std::sync::{Arc, Mutex};
 
 // 0xFX0A wait for a key press, store the value of the key in VX
-pub fn r(instruction: u16, pc: &mut u16, mutex_memory: &Arc<Mutex<Memory>>, V_adr: &[u16; 16], dico_events: &HashMap<u8, bool>) {
+pub fn r(
+    instruction: u16,
+    pc: &mut u16,
+    mutex_memory: &Arc<Mutex<Memory>>,
+    V_adr: &[u16; 16],
+    dico_events: &HashMap<u8, bool>,
+) {
     let X = ((instruction & 0x0F00) >> 8) as usize;
 
     if DEBUG {

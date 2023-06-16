@@ -9,7 +9,7 @@ pub fn r(
     pc: &mut u16,
     opcode: u16,
     mutex_memory: &Arc<Mutex<Memory>>,
-    V_adr: [u16; 16],
+    V_adr: &[u16; 16],
 ) -> Result<(), NonUsedInstructionError> {
     let X = ((instruction & 0x0F00) >> 8) as usize;
     let Y = ((instruction & 0x00F0) >> 4) as usize;
