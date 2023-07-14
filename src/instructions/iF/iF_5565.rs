@@ -1,19 +1,14 @@
+use crate::constants::*;
 use crate::launch_options::*;
 use crate::memory::Memory;
 
 use std::sync::{Arc, Mutex};
 
-pub fn r(
-    instruction: u16,
-    pc: u16,
-    mutex_memory: &Arc<Mutex<Memory>>,
-    V_adr: &[u16; 16],
-    I_adr: u16,
-) {
+pub fn r(instruction: u16, pc: u16, mutex_memory: &Arc<Mutex<Memory>>) {
     let X = ((instruction & 0x0F00) >> 8) as usize;
 
     let mut guard = mutex_memory.lock().unwrap();
-    let I = guard.read_word(I_adr);
+    let I = guard.read_word(I_ADR);
     if DEBUG {
         let (action, particle) = if instruction & 0x00FF == 0x0055 {
             ("Storing", "to")
@@ -22,10 +17,10 @@ pub fn r(
         };
         println!("0x{:03X} | 0x{:04X} | {action} V0 through V{:01X} {particle} memory starting at address I", pc-2, instruction, X);
     }
-    for (i, V_adr_i) in V_adr.iter().enumerate().take(X + 1) {
+    for (i, V_ADR_i) in V_ADR.iter().enumerate().take(X + 1) {
         let iu16 = i as u16;
         if instruction & 0x00FF == 0x0055 {
-            let Vi = guard.read(*V_adr_i);
+            let Vi = guard.read(*V_ADR_i);
             if DEBUG_VERBOSE {
                 println!("               | Storing V{:01X} = 0x{:02X} ({Vi}) in memory at address {:03X}", i, Vi, I+i as u16);
             }
@@ -36,10 +31,10 @@ pub fn r(
             if DEBUG_VERBOSE {
                 println!("               | Storing memory at address {:03X} = 0x{:02X} ({future_Vi}) in V{:01X}", I+i as u16, future_Vi, i);
             }
-            guard.write(*V_adr_i, future_Vi);
+            guard.write(*V_ADR_i, future_Vi);
         }
     }
     if CB_FX_5 == CB::OLD {
-        guard.write_word(I_adr, I + (X as u16) + 1);
+        guard.write_word(I_ADR, I + (X as u16) + 1);
     }
 }

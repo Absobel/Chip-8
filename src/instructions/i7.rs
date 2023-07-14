@@ -1,10 +1,11 @@
-use super::super::launch_options::*;
-use super::super::memory::Memory;
+use crate::constants::*;
+use crate::launch_options::*;
+use crate::memory::Memory;
 
 use std::sync::{Arc, Mutex};
 
 // 0x7XNN add 0xNN to register VX (carry flag is not changed)
-pub fn r(instruction: u16, pc: u16, mutex_memory: &Arc<Mutex<Memory>>, V_adr: &[u16; 16]) {
+pub fn r(instruction: u16, pc: u16, mutex_memory: &Arc<Mutex<Memory>>) {
     let X = ((instruction & 0x0F00) >> 8) as usize;
     let NN = (instruction & 0x00FF) as usize;
 
@@ -19,7 +20,7 @@ pub fn r(instruction: u16, pc: u16, mutex_memory: &Arc<Mutex<Memory>>, V_adr: &[
     }
 
     let mut guard = mutex_memory.lock().expect("Failed to lock memory");
-    let VX = guard.read(V_adr[X]) as usize;
-    guard.write(V_adr[X], (VX + NN) as u8);
+    let VX = guard.read(V_ADR[X]) as usize;
+    guard.write(V_ADR[X], (VX + NN) as u8);
     std::mem::drop(guard);
 }

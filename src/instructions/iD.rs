@@ -1,3 +1,4 @@
+use crate::constants::*;
 use crate::display;
 use crate::launch_options::*;
 use crate::memory::Memory;
@@ -11,8 +12,6 @@ pub fn r(
     mutex_memory: &Arc<Mutex<Memory>>,
     pc: u16,
     instruction: u16,
-    I_adr: u16,
-    V_adr: &[u16; 16],
     screen: &mut Screen,
     canvas: &mut WindowCanvas,
 ) {
@@ -21,8 +20,8 @@ pub fn r(
     let N = instruction & 0x000F;
 
     let mut guard = mutex_memory.lock().unwrap();
-    let VX = guard.read(V_adr[X]);
-    let VY = guard.read(V_adr[Y]);
+    let VX = guard.read(V_ADR[X]);
+    let VY = guard.read(V_ADR[Y]);
 
     if DEBUG {
         println!("0x{:03X} | 0x{:04X} | Displaying sprite at (V{:01X}, V{:01X}) = ({VX}, {VY}) with width 8 and height {:01X}", pc-2, instruction, X, Y, N);
@@ -31,15 +30,15 @@ pub fn r(
     let mut cX = VX % 64; // coord X
     let mut cY = VY % 32; // coord Y
     let ccX = cX;
-    guard.write(V_adr[0xF], 0);
+    guard.write(V_ADR[0xF], 0);
 
     'rows: for i in 0..N {
-        let row = guard.read(guard.read_word(I_adr) + i);
+        let row = guard.read(guard.read_word(I_ADR) + i);
         'columns: for j in 0..8 {
             let pixel = (row >> (7 - j)) & 0x1;
             if pixel == 1 {
                 if screen.is_on(cX, cY) {
-                    guard.write(V_adr[0xF], 1);
+                    guard.write(V_ADR[0xF], 1);
                     screen.set(cX, cY, false);
                 } else {
                     screen.set(cX, cY, true);

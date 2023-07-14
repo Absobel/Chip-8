@@ -1,16 +1,11 @@
+use crate::constants::*;
 use crate::launch_options::*;
 use crate::memory::Memory;
 
 use std::sync::{Arc, Mutex};
 
 // 0xFX07 set VX to the value of the delay timer
-pub fn r(
-    instruction: u16,
-    pc: u16,
-    mutex_memory: &Arc<Mutex<Memory>>,
-    V_adr: &[u16; 16],
-    timer_adr: u16,
-) {
+pub fn r(instruction: u16, pc: u16, mutex_memory: &Arc<Mutex<Memory>>) {
     let X = ((instruction & 0x0F00) >> 8) as usize;
 
     if DEBUG {
@@ -23,7 +18,7 @@ pub fn r(
     }
 
     let mut guard = mutex_memory.lock().unwrap();
-    let timer_val = guard.read(timer_adr);
-    guard.write(V_adr[X], timer_val);
+    let timer_val = guard.read(TIMER_ADR);
+    guard.write(V_ADR[X], timer_val);
     std::mem::drop(guard);
 }

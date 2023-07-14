@@ -21,7 +21,6 @@ pub const CB_B_NN: CB = CB::NEW; // NEW : Jump to adress NNN + VX            |||
 pub const CB_FX1E: CB = CB::NEW; // NEW : + If I overlfow the memory, VF = 1 |||| OLD : does not
 pub const CB_FX_5: CB = CB::NEW; // NEW : is not                             |||| OLD : I is incremented
 
-pub const FONT_ADRESS: u16 = 0x50;
 pub const FONT_SET: [u8; 80] = [
     0xF0, 0x90, 0x90, 0x90, 0xF0, // 0
     0x20, 0x60, 0x20, 0x20, 0x70, // 1

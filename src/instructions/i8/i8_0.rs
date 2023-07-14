@@ -1,9 +1,10 @@
+use crate::constants::*;
 use crate::launch_options::*;
 use crate::memory::Memory;
 
 use std::sync::{Arc, Mutex};
 
-pub fn r(mutex_memory: &Arc<Mutex<Memory>>, pc: u16, instruction: &u16, V_adr: &[u16; 16]) {
+pub fn r(mutex_memory: &Arc<Mutex<Memory>>, pc: u16, instruction: &u16) {
     let X = ((instruction & 0x0F00) >> 8) as usize;
     let Y = ((instruction & 0x00F0) >> 4) as usize;
 
@@ -18,7 +19,7 @@ pub fn r(mutex_memory: &Arc<Mutex<Memory>>, pc: u16, instruction: &u16, V_adr: &
     }
 
     let mut guard = mutex_memory.lock().unwrap();
-    let VY = guard.read(V_adr[Y]);
-    guard.write(V_adr[X], VY);
+    let VY = guard.read(V_ADR[Y]);
+    guard.write(V_ADR[X], VY);
     std::mem::drop(guard);
 }

@@ -1,3 +1,4 @@
+use crate::constants::*;
 use crate::launch_options::*;
 use crate::memory::Memory;
 
@@ -9,7 +10,7 @@ pub fn r(
     instruction: u16,
     pc: &mut u16,
     mutex_memory: &Arc<Mutex<Memory>>,
-    V_adr: &[u16; 16],
+
     dico_events: &HashMap<u8, bool>,
 ) {
     let X = ((instruction & 0x0F00) >> 8) as usize;
@@ -28,7 +29,7 @@ pub fn r(
 
     let mut guard = mutex_memory.lock().unwrap();
     if key_pressed != 0xFF {
-        guard.write(V_adr[X], key_pressed);
+        guard.write(V_ADR[X], key_pressed);
     } else {
         *pc -= 2;
     }

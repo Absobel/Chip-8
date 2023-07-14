@@ -1,13 +1,15 @@
 #![allow(non_snake_case)]
+mod constants;
 mod custom_errors;
 mod display;
 mod events;
+mod instruction_executioner;
 mod instructions;
 mod launch_options;
 mod memory;
-mod instruction_executioner;
 mod screen;
 
+use constants::*;
 use launch_options::*;
 
 use std::{
@@ -23,12 +25,6 @@ fn load_font(memory: &mut memory::Memory) {
 }
 
 fn main() {
-    // let args = env::args().collect::<Vec<String>>();                        // TODO
-    // if !args.is_empty() {
-    //     let debug_str = args[1].clone();
-    //     let DEBUG = if debug_str == "true" { true } else { false };
-    // }
-
     // INIT DISPLAY
     let mut screen = screen::Screen::new();
 
@@ -41,17 +37,6 @@ fn main() {
     let mut memory: memory::Memory = memory::Memory::new();
     memory.load_rom(ROM_PATH).unwrap();
     load_font(&mut memory);
-
-    const I_ADR: u16 = 0xFFE; // Index register
-    let mut V_adr: [u16; 16] = [0; 16]; // Registers V0 to VF
-    for (i, V_adr_i) in V_adr.iter_mut().enumerate() {
-        *V_adr_i = 0xFEE + i as u16;
-    }
-
-    const TIMER_ADR: u16 = 0x0FED; // Timer register
-    const SOUND_ADR: u16 = 0x0FEC;
-    memory.write(TIMER_ADR, 0x00);
-    memory.write(SOUND_ADR, 0x00); // Sound register
 
     let mut stack = Vec::<u16>::new(); // Stack of adresses used to call subroutines or return from them
     let mut pc: u16 = 0x200; // program counter
@@ -99,7 +84,7 @@ fn main() {
         // Only way it could be Err is if the user wants to quit the game
         if events::update(&sdl_context, &mut dico_events).is_err() {
             break;
-        }       
+        }
 
         instruction_executioner::decode(
             &mut pc,
@@ -107,12 +92,9 @@ fn main() {
             &mut screen,
             &mut canvas,
             &mutex_memory,
-            &V_adr,
-            I_ADR,
-            TIMER_ADR,
-            SOUND_ADR,
             &dico_events,
-        ).expect("Instruction not implemented");
+        )
+        .expect("Instruction not implemented");
 
         // To have IPS instructions per second
         if let Some(time_elapsed) = Duration::from_millis(1000 / IPS).checked_sub(start.elapsed()) {
