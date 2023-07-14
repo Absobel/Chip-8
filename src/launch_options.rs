@@ -1,4 +1,3 @@
-#![allow(dead_code)]
 #![allow(clippy::upper_case_acronyms)]
 
 //pub const ROM_PATH: &str = "roms/test_opcode.ch8";
