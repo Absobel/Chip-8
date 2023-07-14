@@ -13,3 +13,6 @@ Cargo.lock
 /assets/*
 
 .vscode
+
+flamegraph.svg
+perf.data

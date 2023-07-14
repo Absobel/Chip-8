@@ -42,16 +42,16 @@ fn main() {
     memory.load_rom(ROM_PATH).unwrap();
     load_font(&mut memory);
 
-    let I_adr: u16 = 0xFFE; // Index register
+    const I_ADR: u16 = 0xFFE; // Index register
     let mut V_adr: [u16; 16] = [0; 16]; // Registers V0 to VF
     for (i, V_adr_i) in V_adr.iter_mut().enumerate() {
         *V_adr_i = 0xFEE + i as u16;
     }
 
-    let timer_adr = 0x0FED; // Timer register
-    let sound_adr = 0x0FEC;
-    memory.write(timer_adr, 0x00);
-    memory.write(sound_adr, 0x00); // Sound register
+    const TIMER_ADR: u16 = 0x0FED; // Timer register
+    const SOUND_ADR: u16 = 0x0FEC;
+    memory.write(TIMER_ADR, 0x00);
+    memory.write(SOUND_ADR, 0x00); // Sound register
 
     let mut stack = Vec::<u16>::new(); // Stack of adresses used to call subroutines or return from them
     let mut pc: u16 = 0x200; // program counter
@@ -62,9 +62,9 @@ fn main() {
 
     thread::spawn(move || loop {
         let mut guard = mutex_memory_timer.lock().unwrap();
-        let timer = guard.read(timer_adr);
+        let timer = guard.read(TIMER_ADR);
         if timer > 0 {
-            guard.write(timer_adr, timer - 1);
+            guard.write(TIMER_ADR, timer - 1);
             std::mem::drop(guard);
             thread::sleep(Duration::from_millis(16));
         } else {
@@ -74,10 +74,10 @@ fn main() {
     thread::spawn(move || {
         loop {
             let mut guard = mutex_memory_sound.lock().unwrap();
-            let timer = guard.read(sound_adr);
+            let timer = guard.read(SOUND_ADR);
             if timer > 0 {
-                // add beep
-                guard.write(sound_adr, timer - 1);
+                // TODO: add beep
+                guard.write(SOUND_ADR, timer - 1);
                 std::mem::drop(guard);
                 thread::sleep(Duration::from_millis(16));
             } else {
@@ -93,11 +93,12 @@ fn main() {
         println!("------+--------+--------------------------------");
     }
 
-    'game: loop {
+    loop {
         let start = Instant::now();
 
+        // Only way it could be Err is if the user wants to quit the game
         if events::update(&sdl_context, &mut dico_events).is_err() {
-            break 'game;
+            break;
         }
 
         let guard = mutex_memory.lock().unwrap();
@@ -116,9 +117,9 @@ fn main() {
             &mut canvas,
             &mutex_memory,
             &V_adr,
-            I_adr,
-            timer_adr,
-            sound_adr,
+            I_ADR,
+            TIMER_ADR,
+            SOUND_ADR,
             &dico_events,
         );
 
