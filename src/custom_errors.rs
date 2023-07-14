@@ -1,5 +1,6 @@
 use std::fmt;
 
+#[derive(Debug)]
 pub struct NonUsedInstructionError {
     pub pc: u16,
     pub instruction: u16,

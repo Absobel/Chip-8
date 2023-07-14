@@ -5,7 +5,7 @@ mod events;
 mod instructions;
 mod launch_options;
 mod memory;
-mod opcode_decoder;
+mod instruction_executioner;
 mod screen;
 
 use launch_options::*;
@@ -99,18 +99,9 @@ fn main() {
         // Only way it could be Err is if the user wants to quit the game
         if events::update(&sdl_context, &mut dico_events).is_err() {
             break;
-        }
+        }       
 
-        let guard = mutex_memory.lock().unwrap();
-        let instruction = guard.read_word(pc);
-        std::mem::drop(guard);
-
-        pc += 2;
-        let opcode = (instruction & 0xF000) >> 12;
-
-        opcode_decoder::decode(
-            opcode,
-            instruction,
+        instruction_executioner::decode(
             &mut pc,
             &mut stack,
             &mut screen,
@@ -121,7 +112,7 @@ fn main() {
             TIMER_ADR,
             SOUND_ADR,
             &dico_events,
-        );
+        ).expect("Instruction not implemented");
 
         // To have IPS instructions per second
         if let Some(time_elapsed) = Duration::from_millis(1000 / IPS).checked_sub(start.elapsed()) {
