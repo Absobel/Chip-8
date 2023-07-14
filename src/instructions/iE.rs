@@ -28,7 +28,7 @@ pub fn r(
         }
         if DEBUG && is_key_pressed_VX {
             println!("0x{:03X} | 0x{:04X} | Skipping next instruction because the key with the value of V{:01X} ({:02X}) is pressed", *pc-2, instruction, X, VX);
-        } else {
+        } else if DEBUG {
             println!("0x{:03X} | 0x{:04X} | Not skipping next instruction because the key with the value of V{:01X} ({:02X}) is not pressed", *pc-2, instruction, X, VX);
         }
     } else if instruction & 0x00FF == 0x00A1 {
@@ -37,7 +37,7 @@ pub fn r(
         }
         if DEBUG && !is_key_pressed_VX {
             println!("0x{:03X} | 0x{:04X} | Skipping next instruction because the key with the value of V{:01X} ({:02X}) is not pressed", *pc-2, instruction, X, VX);
-        } else {
+        } else if DEBUG {
             println!("0x{:03X} | 0x{:04X} | Not skipping next instruction because the key with the value of V{:01X} ({:02X}) is pressed", *pc-2, instruction, X, VX);
         }
     } else {
