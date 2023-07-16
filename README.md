@@ -16,9 +16,12 @@ This is temporary because there is no menu or anything but you can modify the co
 
 # TODO
 
+## Features
 - [ ] Add sound
 - [ ] Add a menu
 - [ ] Add a debugger
 
+# Implementation
 - [ ] stack: Vec -> Array
 - [ ] Remove unsafe
+- [ ] Unit tests
