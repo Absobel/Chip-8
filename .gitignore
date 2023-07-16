@@ -12,8 +12,6 @@ Cargo.lock
 # Parce que ça va pas mal changer
 /assets/*
 
-.vscode
-
 flamegraph.svg
 perf.data
 perf.data.old
