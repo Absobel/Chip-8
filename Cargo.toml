@@ -11,3 +11,7 @@ rand = "0.8.5"
 [dependencies.sdl2]
 version = "0.35.2"
 default-features = false
+
+[profile.release-debug]
+inherits = "release"
+debug = true
