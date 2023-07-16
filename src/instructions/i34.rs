@@ -2,18 +2,13 @@ use super::super::constants::*;
 use super::super::launch_options::*;
 use super::super::memory::Memory;
 
-use std::sync::Arc;
-use std::sync::Mutex;
-
 // 0x3XNN skip next instruction if VX == NN
 // 0x4XNN skip next instruction if VX != NN
-pub fn r(instruction: u16, pc: &mut u16, mutex_memory: &Arc<Mutex<Memory>>, opcode: u16) {
+pub fn r(instruction: u16, pc: &mut u16, memory: &mut Memory, opcode: u16) {
     let X = ((instruction & 0x0F00) >> 8) as usize;
     let NN = (instruction & 0x00FF) as usize;
 
-    let guard = mutex_memory.lock().unwrap();
-    let VX = guard.read(V_ADR[X]);
-    std::mem::drop(guard);
+    let VX = memory.read(V_ADR[X]);
 
     if DEBUG {
         match (opcode, VX == NN as u8) {

@@ -3,16 +3,9 @@ use super::super::super::launch_options::*;
 use super::super::super::memory::Memory;
 
 use std::collections::HashMap;
-use std::sync::{Arc, Mutex};
 
 // 0xFX0A wait for a key press, store the value of the key in VX
-pub fn r(
-    instruction: u16,
-    pc: &mut u16,
-    mutex_memory: &Arc<Mutex<Memory>>,
-
-    dico_events: &HashMap<u8, bool>,
-) {
+pub fn r(instruction: u16, pc: &mut u16, memory: &mut Memory, dico_events: &HashMap<u8, bool>) {
     let X = ((instruction & 0x0F00) >> 8) as usize;
 
     if DEBUG {
@@ -27,11 +20,9 @@ pub fn r(
         }
     }
 
-    let mut guard = mutex_memory.lock().unwrap();
     if key_pressed != 0xFF {
-        guard.write(V_ADR[X], key_pressed);
+        memory.write(V_ADR[X], key_pressed);
     } else {
         *pc -= 2;
     }
-    std::mem::drop(guard);
 }

@@ -2,10 +2,8 @@ use super::super::constants::*;
 use super::super::launch_options::*;
 use super::super::memory::Memory;
 
-use std::sync::{Arc, Mutex};
-
 // 0x7XNN add 0xNN to register VX (carry flag is not changed)
-pub fn r(instruction: u16, pc: u16, mutex_memory: &Arc<Mutex<Memory>>) {
+pub fn r(instruction: u16, pc: u16, memory: &mut Memory) {
     let X = ((instruction & 0x0F00) >> 8) as usize;
     let NN = (instruction & 0x00FF) as usize;
 
@@ -19,8 +17,6 @@ pub fn r(instruction: u16, pc: u16, mutex_memory: &Arc<Mutex<Memory>>) {
         );
     }
 
-    let mut guard = mutex_memory.lock().expect("Failed to lock memory");
-    let VX = guard.read(V_ADR[X]) as usize;
-    guard.write(V_ADR[X], (VX + NN) as u8);
-    std::mem::drop(guard);
+    let VX = memory.read(V_ADR[X]) as usize;
+    memory.write(V_ADR[X], (VX + NN) as u8);
 }

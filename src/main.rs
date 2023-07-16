@@ -13,7 +13,6 @@ use constants::*;
 use launch_options::*;
 
 use std::{
-    sync::{Arc, Mutex},
     thread,
     time::{Duration, Instant},
 };
@@ -38,34 +37,39 @@ fn main() {
     memory.load_rom(ROM_PATH).unwrap();
     load_font(&mut memory);
 
+    struct PtrMem(*mut memory::Memory);
+    unsafe impl Send for PtrMem {}
+    let ptr_mem_delay = PtrMem(&mut memory as *mut memory::Memory);
+    let ptr_mem_sound = PtrMem(&mut memory as *mut memory::Memory);
+
     let mut stack = Vec::<u16>::new(); // Stack of adresses used to call subroutines or return from them
     let mut pc: u16 = 0x200; // program counter
 
-    let mutex_memory = Arc::new(Mutex::new(memory));
-    let mutex_memory_timer = mutex_memory.clone();
-    let mutex_memory_sound = mutex_memory.clone();
+    thread::spawn(move || {
+        let _ = &ptr_mem_delay;
+        let memory = unsafe { &mut *ptr_mem_delay.0 };
+        loop {
+            let timer = memory.read_delay_timer();
+            if timer > 0 {
+                memory.decrement_delay_timer();
 
-    thread::spawn(move || loop {
-        let mut guard = mutex_memory_timer.lock().unwrap();
-        let timer = guard.read_delay_timer();
-        if timer > 0 {
-            guard.decrement_delay_timer();
-            std::mem::drop(guard);
-            thread::sleep(Duration::from_millis(16));
-        } else {
-            std::mem::drop(guard);
+                thread::sleep(Duration::from_millis(16));
+            } else {
+            }
         }
     });
-    thread::spawn(move || loop {
-        let mut guard = mutex_memory_sound.lock().unwrap();
-        let timer = guard.read_sound_timer();
-        if timer > 0 {
-            // TODO: add beep
-            guard.decrement_sound_timer();
-            std::mem::drop(guard);
-            thread::sleep(Duration::from_millis(16));
-        } else {
-            std::mem::drop(guard);
+    thread::spawn(move || {
+        let _ = &ptr_mem_sound;
+        let memory = unsafe { &mut *ptr_mem_sound.0 };
+        loop {
+            let timer = memory.read_sound_timer();
+            if timer > 0 {
+                // TODO: add beep
+                memory.decrement_sound_timer();
+
+                thread::sleep(Duration::from_millis(16));
+            } else {
+            }
         }
     });
 
@@ -89,7 +93,7 @@ fn main() {
             &mut stack,
             &mut screen,
             &mut canvas,
-            &mutex_memory,
+            &mut memory,
             &dico_events,
         )
         .expect("Instruction not implemented");

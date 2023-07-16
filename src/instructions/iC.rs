@@ -3,10 +3,9 @@ use super::super::launch_options::*;
 use super::super::memory::Memory;
 
 use rand::Rng;
-use std::sync::{Arc, Mutex};
 
 // 0xCXNN set VX to random number and binary-AND's it with NN
-pub fn r(instruction: u16, pc: u16, mutex_memory: &Arc<Mutex<Memory>>) {
+pub fn r(instruction: u16, pc: u16, memory: &mut Memory) {
     let X = ((instruction & 0x0F00) >> 8) as usize;
     let NN = (instruction & 0x00FF) as usize;
 
@@ -17,7 +16,5 @@ pub fn r(instruction: u16, pc: u16, mutex_memory: &Arc<Mutex<Memory>>) {
     let mut rng = rand::thread_rng();
     let random: u8 = rng.gen();
 
-    let mut guard = mutex_memory.lock().unwrap();
-    guard.write(V_ADR[X], random & NN as u8);
-    std::mem::drop(guard);
+    memory.write(V_ADR[X], random & NN as u8);
 }

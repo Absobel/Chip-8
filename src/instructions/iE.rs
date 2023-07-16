@@ -1,5 +1,4 @@
 use std::collections::HashMap;
-use std::sync::{Arc, Mutex};
 
 use super::super::constants::*;
 use super::super::custom_errors::*;
@@ -8,17 +7,10 @@ use super::super::memory::Memory;
 
 // 0xEX9E skip next instruction if key with the value of VX is pressed
 // 0xEXA1 skip next instruction if key with the value of VX is not pressed
-pub fn r(
-    instruction: u16,
-    pc: &mut u16,
-    mutex_memory: &Arc<Mutex<Memory>>,
-    dico_events: &HashMap<u8, bool>,
-) {
+pub fn r(instruction: u16, pc: &mut u16, memory: &mut Memory, dico_events: &HashMap<u8, bool>) {
     let X = ((instruction & 0x0F00) >> 8) as usize;
 
-    let guard = mutex_memory.lock().unwrap();
-    let VX = guard.read(V_ADR[X]);
-    std::mem::drop(guard);
+    let VX = memory.read(V_ADR[X]);
 
     let is_key_pressed_VX = *(dico_events.get(&VX).expect("VX devrait être dans le dico"));
 

@@ -2,10 +2,8 @@ use super::super::super::constants::*;
 use super::super::super::launch_options::*;
 use super::super::super::memory::Memory;
 
-use std::sync::{Arc, Mutex};
-
 // 0xFX07 set VX to the value of the delay timer
-pub fn r(instruction: u16, pc: u16, mutex_memory: &Arc<Mutex<Memory>>) {
+pub fn r(instruction: u16, pc: u16, memory: &mut Memory) {
     let X = ((instruction & 0x0F00) >> 8) as usize;
 
     if DEBUG {
@@ -17,8 +15,6 @@ pub fn r(instruction: u16, pc: u16, mutex_memory: &Arc<Mutex<Memory>>) {
         );
     }
 
-    let mut guard = mutex_memory.lock().unwrap();
-    let timer_val = guard.read_delay_timer();
-    guard.write(V_ADR[X], timer_val);
-    std::mem::drop(guard);
+    let timer_val = memory.read_delay_timer();
+    memory.write(V_ADR[X], timer_val);
 }

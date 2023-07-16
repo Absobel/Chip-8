@@ -2,9 +2,7 @@ use super::super::constants::*;
 use super::super::launch_options::*;
 use super::super::memory::Memory;
 
-use std::sync::{Arc, Mutex};
-
-pub fn r(instruction: u16, pc: &mut u16, mutex_memory: &Arc<Mutex<Memory>>) {
+pub fn r(instruction: u16, pc: &mut u16, memory: &mut Memory) {
     let NNN = instruction & 0x0FFF;
     let X = ((instruction & 0x0F00) >> 8) as usize;
 
@@ -19,9 +17,7 @@ pub fn r(instruction: u16, pc: &mut u16, mutex_memory: &Arc<Mutex<Memory>>) {
             );
         }
 
-        let guard = mutex_memory.lock().unwrap();
-        let V0 = guard.read(V_ADR[0]);
-        std::mem::drop(guard);
+        let V0 = memory.read(V_ADR[0]);
 
         *pc = NNN + V0 as u16;
     } else if CB_B_NN == CB::NEW {
@@ -36,9 +32,7 @@ pub fn r(instruction: u16, pc: &mut u16, mutex_memory: &Arc<Mutex<Memory>>) {
             );
         }
 
-        let guard = mutex_memory.lock().unwrap();
-        let VX = guard.read(V_ADR[X]);
-        std::mem::drop(guard);
+        let VX = memory.read(V_ADR[X]);
 
         *pc = NNN + VX as u16;
     }
