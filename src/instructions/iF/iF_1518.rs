@@ -1,8 +1,8 @@
 use std::sync::{Arc, Mutex};
 
-use crate::constants::*;
-use crate::launch_options::*;
-use crate::memory::Memory;
+use super::super::super::constants::*;
+use super::super::super::launch_options::*;
+use super::super::super::memory::Memory;
 
 // 0xFX15 set the delay timer to VX
 // 0xFX18 set the sound timer to VX

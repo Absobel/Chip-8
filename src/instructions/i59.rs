@@ -1,9 +1,9 @@
 use std::sync::{Arc, Mutex};
 
-use crate::constants::*;
-use crate::custom_errors::NonUsedInstructionError;
-use crate::launch_options::*;
-use crate::memory::Memory;
+use super::super::constants::*;
+use super::super::custom_errors::NonUsedInstructionError;
+use super::super::launch_options::*;
+use super::super::memory::Memory;
 
 pub fn r(
     instruction: u16,

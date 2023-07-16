@@ -1,7 +1,7 @@
-use crate::custom_errors::NonUsedInstructionError;
-use crate::instructions::{i8::*, iF::*, *};
-use crate::memory;
-use crate::screen;
+use super::custom_errors::NonUsedInstructionError;
+use super::instructions::{i8::*, iF::*, *};
+use super::memory;
+use super::screen;
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 

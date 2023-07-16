@@ -1,8 +1,8 @@
 use std::sync::{Arc, Mutex};
 
-use crate::constants::*;
-use crate::launch_options::*;
-use crate::memory::Memory;
+use super::super::super::constants::*;
+use super::super::super::launch_options::*;
+use super::super::super::memory::Memory;
 
 // 0xFX1E add VX to I with carry flag if CB_BNNN = NEW
 pub fn r(instruction: u16, pc: &mut u16, mutex_memory: &Arc<Mutex<Memory>>) {

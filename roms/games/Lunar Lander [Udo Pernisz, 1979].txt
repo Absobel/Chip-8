@@ -1,6 +1,6 @@
 15. Lunar Lander
 
-You are descending to the floor of a 250-foot crater.  The right side of the TV display
+You are descending to the floor of a 250-foot super::superr.  The right side of the TV display
 shows amount of fuel, feet from bottom and fall rate per cycle.  Lenght of fall rate
 cycle changes from about 1/4 second to one second.  The fall rate increases by one
 foot per second/per cycle.  The computer will update the display only at the end of
@@ -8,12 +8,12 @@ each cycle.
 
 The left side of the display shows the Lunar Lander descending from 250 feet.  The
 Lander will first appear at one of sixteen locations.  It will then slowly drop down
-the crater.  The crater walls have rock formations protruding from them which must
-be avoided.  If either rocket motor should touch any part of the crater, the Lander
+the super::superr.  The super::superr walls have rock formations protruding from them which must
+be avoided.  If either rocket motor should touch any part of the super::superr, the Lander
 will explode in a cloud of smoke and disintegrate.  (Remember, these are atomic
 thrusters and react like miniature atomic bombs upon impact).
 
-When you reach 32 feet, the display will change, and you will see the crater floor.
+When you reach 32 feet, the display will change, and you will see the super::superr floor.
 You must now ladn between the rock formations on the floo and maintain a minimum fall
 rate.  As you drop your fall rate to zero, you soon discover that the Lander becomes
 more and more unstable just as any hovering object would.  And now with perfect skill
@@ -75,7 +75,7 @@ How to Play VIP Lunar Lander
     
     You will obtain the rating of Astronaut Pilot, by ladning with regard to fuel.  80
     pounds or more if you land between the two rock formations on the floor, and 50
-    pounds or more if you land between the crater wall and a rock formation.
+    pounds or more if you land between the super::superr wall and a rock formation.
 
     You will obtain the rating of Astronaut Captain by landing the ship with regard to
     fuel as per above and if the fall rate is two feet per second or less.  (Not an
@@ -91,7 +91,7 @@ How to Play VIP Lunar Lander
 
     The final landing display will appear somewhat like the illustration below
     (VIPG1-15.jpg).  You may land in any of the three locations pointed to.  To land
-    between the crater walls and rock formations, you will have to first bring the
+    between the super::superr walls and rock formations, you will have to first bring the
     Lander to a zero fall rate while hovering in the center landing area.  Then bring
     the ship up and just over the rock formation, and let it drop down to the landing
     site.  At the last moment, a few taps on the thruster button will slow the lander

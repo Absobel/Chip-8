@@ -1,10 +1,10 @@
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 
-use crate::constants::*;
-use crate::custom_errors::*;
-use crate::launch_options::*;
-use crate::memory::Memory;
+use super::super::constants::*;
+use super::super::custom_errors::*;
+use super::super::launch_options::*;
+use super::super::memory::Memory;
 
 // 0xEX9E skip next instruction if key with the value of VX is pressed
 // 0xEXA1 skip next instruction if key with the value of VX is not pressed
