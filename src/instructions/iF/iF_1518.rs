@@ -20,11 +20,12 @@ pub fn r(instruction: u16, pc: &mut u16, mutex_memory: &Arc<Mutex<Memory>>) {
 
     let mut guard = mutex_memory.lock().unwrap();
     let VX = guard.read(V_ADR[X]);
-    let which_timer = if instruction & 0x00FF == 0x0015 {
-        TIMER_ADR
+
+    if instruction & 0x00FF == 0x0015 {
+        guard.write_delay_timer(VX);
     } else {
-        SOUND_ADR
-    };
-    guard.write(which_timer, VX);
+        guard.write_sound_timer(VX);
+    }
+
     std::mem::drop(guard);
 }

@@ -47,9 +47,9 @@ fn main() {
 
     thread::spawn(move || loop {
         let mut guard = mutex_memory_timer.lock().unwrap();
-        let timer = guard.read(TIMER_ADR);
+        let timer = guard.read_delay_timer();
         if timer > 0 {
-            guard.write(TIMER_ADR, timer - 1);
+            guard.write_delay_timer(timer - 1);
             std::mem::drop(guard);
             thread::sleep(Duration::from_millis(16));
         } else {
@@ -58,10 +58,10 @@ fn main() {
     });
     thread::spawn(move || loop {
         let mut guard = mutex_memory_sound.lock().unwrap();
-        let timer = guard.read(SOUND_ADR);
+        let timer = guard.read_sound_timer();
         if timer > 0 {
             // TODO: add beep
-            guard.write(SOUND_ADR, timer - 1);
+            guard.write_sound_timer(timer - 1);
             std::mem::drop(guard);
             thread::sleep(Duration::from_millis(16));
         } else {

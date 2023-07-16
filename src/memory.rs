@@ -3,11 +3,17 @@ use std::io::prelude::*;
 
 pub struct Memory {
     data: [u8; 4096],
+    delay_timer: u8,
+    sound_timer: u8,
 }
 
 impl Memory {
     pub fn new() -> Memory {
-        Memory { data: [0; 4096] }
+        Memory {
+            data: [0; 4096],
+            delay_timer: 0,
+            sound_timer: 0,
+        }
     }
 
     pub fn load_rom(&mut self, rom: &str) -> Result<(), String> {
@@ -42,6 +48,22 @@ impl Memory {
         self.data[address as usize] = value;
     }
 
+    pub fn read_delay_timer(&self) -> u8 {
+        self.delay_timer
+    }
+
+    pub fn write_delay_timer(&mut self, value: u8) {
+        self.delay_timer = value;
+    }
+
+
+    pub fn read_sound_timer(&self) -> u8 {
+        self.sound_timer
+    }
+
+    pub fn write_sound_timer(&mut self, value: u8) {
+        self.sound_timer = value;
+    }
     // DEBUG
 
     #[allow(dead_code)]

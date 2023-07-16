@@ -18,7 +18,7 @@ pub fn r(instruction: u16, pc: u16, mutex_memory: &Arc<Mutex<Memory>>) {
     }
 
     let mut guard = mutex_memory.lock().unwrap();
-    let timer_val = guard.read(TIMER_ADR);
+    let timer_val = guard.read_delay_timer();
     guard.write(V_ADR[X], timer_val);
     std::mem::drop(guard);
 }
