@@ -17,6 +17,8 @@ This is temporary because there is no menu or anything but you can modify the co
 # TODO
 
 - [ ] Add sound
-- [ ] Better performance
 - [ ] Add a menu
 - [ ] Add a debugger
+
+- [ ] stack: Vec -> Array
+- [ ] Remove unsafe
