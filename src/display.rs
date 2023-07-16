@@ -17,15 +17,12 @@ const SIZE_PIXEL: u32 = 20;
 pub fn init() -> Result<(Sdl, Canvas<Window>), String> {
     let sdl_context = sdl2::init()?;
     let video_subsystem = sdl_context.video()?;
-    let mut window = video_subsystem
+    let window = video_subsystem
         .window("CHIP-8", SCREEN_WIDTH, SCREEN_HEIGHT)
         .position_centered()
         .build()
         .unwrap();
 
-    if TERMINAL {
-        window.hide();
-    }
     let mut canvas = window
         .into_canvas()
         .build()

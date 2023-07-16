@@ -62,9 +62,5 @@ pub fn r(
     }
     std::mem::drop(guard);
 
-    if TERMINAL {
-        screen.debug_display();
-    } else {
-        display::display(canvas, screen).expect("Error while displaying");
-    }
+    display::display(canvas, screen).expect("Error while displaying");
 }

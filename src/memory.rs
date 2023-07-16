@@ -42,6 +42,9 @@ impl Memory {
         self.data[address as usize] = value;
     }
 
+
+    // DEBUG
+
     #[allow(dead_code)]
     pub fn dump(&self) {
         for (i, byte) in self.data.iter().enumerate() {

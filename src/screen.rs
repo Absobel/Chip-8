@@ -40,6 +40,9 @@ impl Screen {
         self.pixels[y][x].state = state;
     }
 
+    // DEBUG
+
+    #[allow(dead_code)]
     pub fn debug_display(&self) {
         if !DEBUG {
             print!("\x1B[2J\x1B[1;1H");
