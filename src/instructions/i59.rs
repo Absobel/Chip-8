@@ -1,5 +1,3 @@
-use std::sync::{Arc, Mutex};
-
 use super::super::constants::*;
 use super::super::custom_errors::NonUsedInstructionError;
 use super::super::launch_options::*;
@@ -9,15 +7,13 @@ pub fn r(
     instruction: u16,
     pc: &mut u16,
     opcode: u16,
-    mutex_memory: &Arc<Mutex<Memory>>,
+    memory: &mut Memory,
 ) -> Result<(), NonUsedInstructionError> {
     let X = ((instruction & 0x0F00) >> 8) as usize;
     let Y = ((instruction & 0x00F0) >> 4) as usize;
 
-    let guard = mutex_memory.lock().unwrap();
-    let VX = guard.read(V_ADR[X]);
-    let VY = guard.read(V_ADR[Y]);
-    std::mem::drop(guard);
+    let VX = memory.read(V_ADR[X]);
+    let VY = memory.read(V_ADR[Y]);
 
     if opcode == 5 || opcode == 9 {
         let condition_met = if opcode == 5 { VX == VY } else { VX != VY };

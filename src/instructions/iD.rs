@@ -5,11 +5,10 @@ use super::super::memory::Memory;
 use super::super::screen::Screen;
 
 use sdl2::render::WindowCanvas;
-use std::sync::{Arc, Mutex};
 
 // 0xDXYN display sprite at (VX, VY) with width 8 and height N
 pub fn r(
-    mutex_memory: &Arc<Mutex<Memory>>,
+    memory: &mut Memory,
     pc: u16,
     instruction: u16,
     screen: &mut Screen,
@@ -19,9 +18,8 @@ pub fn r(
     let Y = ((instruction & 0x00F0) >> 4) as usize;
     let N = instruction & 0x000F;
 
-    let mut guard = mutex_memory.lock().unwrap();
-    let VX = guard.read(V_ADR[X]);
-    let VY = guard.read(V_ADR[Y]);
+    let VX = memory.read(V_ADR[X]);
+    let VY = memory.read(V_ADR[Y]);
 
     if DEBUG {
         println!("0x{:03X} | 0x{:04X} | Displaying sprite at (V{:01X}, V{:01X}) = ({VX}, {VY}) with width 8 and height {:01X}", pc-2, instruction, X, Y, N);
@@ -30,15 +28,15 @@ pub fn r(
     let mut cX = VX % 64; // coord X
     let mut cY = VY % 32; // coord Y
     let ccX = cX;
-    guard.write(V_ADR[0xF], 0);
+    memory.write(V_ADR[0xF], 0);
 
     'rows: for i in 0..N {
-        let row = guard.read(guard.read_word(I_ADR) + i);
+        let row = memory.read(memory.read_word(I_ADR) + i);
         'columns: for j in 0..8 {
             let pixel = (row >> (7 - j)) & 0x1;
             if pixel == 1 {
                 if screen.is_on(cX, cY) {
-                    guard.write(V_ADR[0xF], 1);
+                    memory.write(V_ADR[0xF], 1);
                     screen.set(cX, cY, false);
                 } else {
                     screen.set(cX, cY, true);
@@ -60,7 +58,6 @@ pub fn r(
             cY = new_cY as u8;
         }
     }
-    std::mem::drop(guard);
 
     display::display(canvas, screen).expect("Error while displaying");
 }

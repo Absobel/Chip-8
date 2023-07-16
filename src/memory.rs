@@ -1,13 +1,20 @@
 use std::fs::File;
 use std::io::prelude::*;
+use std::sync::atomic::{AtomicU8, Ordering};
 
 pub struct Memory {
     data: [u8; 4096],
+    delay_timer: AtomicU8,
+    sound_timer: AtomicU8,
 }
 
 impl Memory {
     pub fn new() -> Memory {
-        Memory { data: [0; 4096] }
+        Memory {
+            data: [0; 4096],
+            delay_timer: AtomicU8::new(0),
+            sound_timer: AtomicU8::new(0),
+        }
     }
 
     pub fn load_rom(&mut self, rom: &str) -> Result<(), String> {
@@ -40,6 +47,30 @@ impl Memory {
 
     pub fn write(&mut self, address: u16, value: u8) {
         self.data[address as usize] = value;
+    }
+
+    pub fn read_delay_timer(&self) -> u8 {
+        self.delay_timer.load(Ordering::Relaxed)
+    }
+
+    pub fn write_delay_timer(&mut self, value: u8) {
+        self.delay_timer.store(value, Ordering::Relaxed);
+    }
+
+    pub fn decrement_delay_timer(&mut self) {
+        self.delay_timer.fetch_sub(1, Ordering::Relaxed);
+    }
+
+    pub fn read_sound_timer(&self) -> u8 {
+        self.sound_timer.load(Ordering::Relaxed)
+    }
+
+    pub fn write_sound_timer(&mut self, value: u8) {
+        self.sound_timer.store(value, Ordering::Relaxed);
+    }
+
+    pub fn decrement_sound_timer(&mut self) {
+        self.sound_timer.fetch_sub(1, Ordering::Relaxed);
     }
 
     // DEBUG
