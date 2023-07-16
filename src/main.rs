@@ -49,7 +49,7 @@ fn main() {
         let mut guard = mutex_memory_timer.lock().unwrap();
         let timer = guard.read_delay_timer();
         if timer > 0 {
-            guard.write_delay_timer(timer - 1);
+            guard.decrement_delay_timer();
             std::mem::drop(guard);
             thread::sleep(Duration::from_millis(16));
         } else {
@@ -61,7 +61,7 @@ fn main() {
         let timer = guard.read_sound_timer();
         if timer > 0 {
             // TODO: add beep
-            guard.write_sound_timer(timer - 1);
+            guard.decrement_sound_timer();
             std::mem::drop(guard);
             thread::sleep(Duration::from_millis(16));
         } else {
