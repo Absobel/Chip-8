@@ -56,18 +56,16 @@ fn main() {
             std::mem::drop(guard);
         }
     });
-    thread::spawn(move || {
-        loop {
-            let mut guard = mutex_memory_sound.lock().unwrap();
-            let timer = guard.read(SOUND_ADR);
-            if timer > 0 {
-                // TODO: add beep
-                guard.write(SOUND_ADR, timer - 1);
-                std::mem::drop(guard);
-                thread::sleep(Duration::from_millis(16));
-            } else {
-                std::mem::drop(guard);
-            }
+    thread::spawn(move || loop {
+        let mut guard = mutex_memory_sound.lock().unwrap();
+        let timer = guard.read(SOUND_ADR);
+        if timer > 0 {
+            // TODO: add beep
+            guard.write(SOUND_ADR, timer - 1);
+            std::mem::drop(guard);
+            thread::sleep(Duration::from_millis(16));
+        } else {
+            std::mem::drop(guard);
         }
     });
 

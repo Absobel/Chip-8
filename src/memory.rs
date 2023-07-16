@@ -42,7 +42,6 @@ impl Memory {
         self.data[address as usize] = value;
     }
 
-
     // DEBUG
 
     #[allow(dead_code)]
