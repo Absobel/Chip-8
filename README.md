@@ -2,9 +2,11 @@
 
 Install rust and cargo then :
 
-`git clone <the url of the repo>`
-`cd <the repo>`
-`cargo run --release`
+```
+git clone <the url of the repo>
+cd <the repo>
+cargo run --release
+```
 
 Enjoy.
 
