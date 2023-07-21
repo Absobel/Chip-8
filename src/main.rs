@@ -30,7 +30,7 @@ fn main() {
     let (sdl_context, mut canvas) = display::init().expect("Could not init display");
 
     // INIT EVENTS
-    let mut dico_events = events::init();
+    let mut keys_state = events::KeysState::new();
 
     // INIT MEMORY
     let mut memory: memory::Memory = memory::Memory::new();
@@ -84,7 +84,7 @@ fn main() {
         let start = Instant::now();
 
         // Only way it could be Err is if the user wants to quit the game
-        if events::update(&sdl_context, &mut dico_events).is_err() {
+        if events::update(&sdl_context, &mut keys_state).is_err() {
             break;
         }
 
@@ -94,7 +94,7 @@ fn main() {
             &mut screen,
             &mut canvas,
             &mut memory,
-            &dico_events,
+            &keys_state,
         )
         .expect("Instruction not implemented");
 

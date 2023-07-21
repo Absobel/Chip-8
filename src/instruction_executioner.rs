@@ -1,8 +1,8 @@
-use super::custom_errors::NonUsedInstructionError;
-use super::instructions::{i8::*, iF::*, *};
-use super::memory::Memory;
-use super::screen;
-use std::collections::HashMap;
+use crate::events::KeysState;
+use crate::custom_errors::NonUsedInstructionError;
+use crate::instructions::{i8::*, iF::*, *};
+use crate::memory::Memory;
+use crate::screen;
 
 pub fn decode(
     pc: &mut u16,
@@ -10,7 +10,7 @@ pub fn decode(
     screen: &mut screen::Screen,
     canvas: &mut sdl2::render::Canvas<sdl2::video::Window>,
     memory: &mut Memory,
-    dico_events: &HashMap<u8, bool>,
+    keys_state: &KeysState,
 ) -> Result<(), NonUsedInstructionError> {
     let instruction = memory.read_word(*pc);
 
@@ -71,13 +71,13 @@ pub fn decode(
         0xD => iD::r(memory, *pc, instruction, screen, canvas),
         // 0xEX9E skip next instruction if key with the value of VX is pressed
         // 0xEXA1 skip next instruction if key with the value of VX is not pressed
-        0xE => iE::r(instruction, pc, memory, dico_events),
+        0xE => iE::r(instruction, pc, memory, keys_state),
         0xF => {
             match instruction & 0x00FF {
                 // 0xFX07 set VX to the value of the delay timer
                 0x0007 => iF_07::r(instruction, *pc, memory),
                 // 0xFX0A wait for a key press, store the value of the key in VX
-                0x000A => iF_0A::r(instruction, pc, memory, dico_events),
+                0x000A => iF_0A::r(instruction, pc, memory, keys_state),
                 // 0xFX15 set the delay timer to VX
                 // 0xFX18 set the sound timer to VX
                 0x0015 | 0x0018 => iF_1518::r(instruction, pc, memory),

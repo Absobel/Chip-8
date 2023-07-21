@@ -1,5 +1,5 @@
-use super::super::super::launch_options::*;
-use super::super::super::memory::Memory;
+use crate::launch_options::*;
+use crate::memory::Memory;
 
 // 0xFX33 store the binary-coded decimal representation of VX at the addresses I, I+1, and I+2
 pub fn r(instruction: u16, pc: u16, memory: &mut Memory) {

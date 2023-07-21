@@ -1,5 +1,5 @@
-use super::super::launch_options::*;
-use super::super::memory::Memory;
+use crate::launch_options::*;
+use crate::memory::Memory;
 
 use rand::Rng;
 

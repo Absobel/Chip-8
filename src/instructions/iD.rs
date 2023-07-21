@@ -1,7 +1,7 @@
-use super::super::display;
-use super::super::launch_options::*;
-use super::super::memory::Memory;
-use super::super::screen::Screen;
+use crate::display;
+use crate::launch_options::*;
+use crate::memory::Memory;
+use crate::screen::Screen;
 
 use sdl2::render::WindowCanvas;
 

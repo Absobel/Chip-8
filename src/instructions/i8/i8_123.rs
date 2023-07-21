@@ -1,5 +1,5 @@
-use super::super::super::launch_options::*;
-use super::super::super::memory::Memory;
+use crate::launch_options::*;
+use crate::memory::Memory;
 
 // 0x8XY1 set VX to VX | VY
 // 0x8XY2 set VX to VX & VY

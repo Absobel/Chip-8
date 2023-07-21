@@ -1,4 +1,4 @@
-use super::super::launch_options::*;
+use crate::launch_options::*;
 
 // 0x2NNN call subroutine at 0xNNN
 pub fn r(instruction: u16, pc: &mut u16, stack: &mut Vec<u16>) {

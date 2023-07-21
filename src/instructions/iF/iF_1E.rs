@@ -1,5 +1,5 @@
-use super::super::super::launch_options::*;
-use super::super::super::memory::Memory;
+use crate::launch_options::*;
+use crate::memory::Memory;
 
 // 0xFX1E add VX to I with carry flag if CB_BNNN = NEW
 pub fn r(instruction: u16, pc: &mut u16, memory: &mut Memory) {
