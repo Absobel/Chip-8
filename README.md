@@ -18,7 +18,7 @@ This is temporary because there is no menu or anything but you can modify the co
 
 ## Features
 - Add proper logging
-- Fix lag spikes from SDL2
+- Fix lag spikes
 - Add sound
 - Add a menu
 - Add a debugger
