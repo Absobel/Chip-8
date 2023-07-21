@@ -1,19 +1,35 @@
-use super::custom_errors::*;
+use crate::custom_errors::*;
 
 use sdl2::{event::Event, keyboard::Keycode, Sdl};
-use std::collections::HashMap;
 
-pub fn init() -> HashMap<u8, bool> {
-    let mut dico_events = HashMap::new();
-
-    for i in 0..16u8 {
-        dico_events.insert(i, false);
-    }
-
-    dico_events
+pub struct KeysState {
+    keys: [bool; 16],
 }
 
-pub fn update(sdl_context: &Sdl, dico_events: &mut HashMap<u8, bool>) -> Result<(), QuitGameError> {
+impl KeysState {
+    pub fn new() -> Self {
+        KeysState { keys: [false; 16] }
+    }
+
+    pub fn read_state(&self, key: u8) -> bool {
+        self.keys[key as usize]
+    }
+
+    pub fn is_key_pressed(&self) -> Option<u8> {
+        for (i, key) in self.keys.iter().enumerate() {
+            if *key {
+                return Some(i as u8);
+            }
+        }
+        None
+    }
+
+    fn update_state(&mut self, key: u8, state: bool) {
+        self.keys[key as usize] = state;
+    }
+}
+
+pub fn update(sdl_context: &Sdl, keys_state: &mut KeysState) -> Result<(), QuitGameError> {
     let mut event_pump = sdl_context.event_pump().expect("Failed to get event pump");
 
     while let Some(event) = event_pump.poll_iter().next() {
@@ -27,212 +43,180 @@ pub fn update(sdl_context: &Sdl, dico_events: &mut HashMap<u8, bool>) -> Result<
             Event::KeyDown {
                 keycode: Some(Keycode::Num1),
                 ..
-            } => dico_events
-                .insert(0x1, true)
-                .expect("Failed to insert key in dico_events"),
+            } => keys_state
+                .update_state(0x1, true),
             Event::KeyUp {
                 keycode: Some(Keycode::Num1),
                 ..
-            } => dico_events
-                .insert(0x1, false)
-                .expect("Failed to insert key in dico_events"),
+            } => keys_state
+                .update_state(0x1, false),
 
             Event::KeyDown {
                 keycode: Some(Keycode::Num2),
                 ..
-            } => dico_events
-                .insert(0x2, true)
-                .expect("Failed to insert key in dico_events"),
+            } => keys_state
+                .update_state(0x2, true),
             Event::KeyUp {
                 keycode: Some(Keycode::Num2),
                 ..
-            } => dico_events
-                .insert(0x2, false)
-                .expect("Failed to insert key in dico_events"),
+            } => keys_state
+                .update_state(0x2, false),
 
             Event::KeyDown {
                 keycode: Some(Keycode::Num3),
                 ..
-            } => dico_events
-                .insert(0x3, true)
-                .expect("Failed to insert key in dico_events"),
+            } => keys_state
+                .update_state(0x3, true),
             Event::KeyUp {
                 keycode: Some(Keycode::Num3),
                 ..
-            } => dico_events
-                .insert(0x3, false)
-                .expect("Failed to insert key in dico_events"),
+            } => keys_state
+                .update_state(0x3, false),
 
             Event::KeyDown {
                 keycode: Some(Keycode::Num4),
                 ..
-            } => dico_events
-                .insert(0xC, true)
-                .expect("Failed to insert key in dico_events"),
+            } => keys_state
+                .update_state(0xC, true),
             Event::KeyUp {
                 keycode: Some(Keycode::Num4),
                 ..
-            } => dico_events
-                .insert(0xC, false)
-                .expect("Failed to insert key in dico_events"),
+            } => keys_state
+                .update_state(0xC, false),
 
             Event::KeyDown {
                 keycode: Some(Keycode::A),
                 ..
-            } => dico_events
-                .insert(0x4, true)
-                .expect("Failed to insert key in dico_events"),
+            } => keys_state
+                .update_state(0x4, true),
             Event::KeyUp {
                 keycode: Some(Keycode::A),
                 ..
-            } => dico_events
-                .insert(0x4, false)
-                .expect("Failed to insert key in dico_events"),
+            } => keys_state
+                .update_state(0x4, false),
 
             Event::KeyDown {
                 keycode: Some(Keycode::Z),
                 ..
-            } => dico_events
-                .insert(0x5, true)
-                .expect("Failed to insert key in dico_events"),
+            } => keys_state
+                .update_state(0x5, true),
             Event::KeyUp {
                 keycode: Some(Keycode::Z),
                 ..
-            } => dico_events
-                .insert(0x5, false)
-                .expect("Failed to insert key in dico_events"),
+            } => keys_state
+                .update_state(0x5, false),
 
             Event::KeyDown {
                 keycode: Some(Keycode::E),
                 ..
-            } => dico_events
-                .insert(0x6, true)
-                .expect("Failed to insert key in dico_events"),
+            } => keys_state
+                .update_state(0x6, true),
             Event::KeyUp {
                 keycode: Some(Keycode::E),
                 ..
-            } => dico_events
-                .insert(0x6, false)
-                .expect("Failed to insert key in dico_events"),
+            } => keys_state
+                .update_state(0x6, false),
 
             Event::KeyDown {
                 keycode: Some(Keycode::R),
                 ..
-            } => dico_events
-                .insert(0xD, true)
-                .expect("Failed to insert key in dico_events"),
+            } => keys_state
+                .update_state(0xD, true),
             Event::KeyUp {
                 keycode: Some(Keycode::R),
                 ..
-            } => dico_events
-                .insert(0xD, false)
-                .expect("Failed to insert key in dico_events"),
+            } => keys_state
+                .update_state(0xD, false),
 
             Event::KeyDown {
                 keycode: Some(Keycode::Q),
                 ..
-            } => dico_events
-                .insert(0x7, true)
-                .expect("Failed to insert key in dico_events"),
+            } => keys_state
+                .update_state(0x7, true),
             Event::KeyUp {
                 keycode: Some(Keycode::Q),
                 ..
-            } => dico_events
-                .insert(0x7, false)
-                .expect("Failed to insert key in dico_events"),
+            } => keys_state
+                .update_state(0x7, false),
 
             Event::KeyDown {
                 keycode: Some(Keycode::S),
                 ..
-            } => dico_events
-                .insert(0x8, true)
-                .expect("Failed to insert key in dico_events"),
+            } => keys_state
+                .update_state(0x8, true),
             Event::KeyUp {
                 keycode: Some(Keycode::S),
                 ..
-            } => dico_events
-                .insert(0x8, false)
-                .expect("Failed to insert key in dico_events"),
+            } => keys_state
+                .update_state(0x8, false),
 
             Event::KeyDown {
                 keycode: Some(Keycode::D),
                 ..
-            } => dico_events
-                .insert(0x9, true)
-                .expect("Failed to insert key in dico_events"),
+            } => keys_state
+                .update_state(0x9, true),
             Event::KeyUp {
                 keycode: Some(Keycode::D),
                 ..
-            } => dico_events
-                .insert(0x9, false)
-                .expect("Failed to insert key in dico_events"),
+            } => keys_state
+                .update_state(0x9, false),
 
             Event::KeyDown {
                 keycode: Some(Keycode::F),
                 ..
-            } => dico_events
-                .insert(0xE, true)
-                .expect("Failed to insert key in dico_events"),
+            } => keys_state
+                .update_state(0xE, true),
             Event::KeyUp {
                 keycode: Some(Keycode::F),
                 ..
-            } => dico_events
-                .insert(0xE, false)
-                .expect("Failed to insert key in dico_events"),
+            } => keys_state
+                .update_state(0xE, false),
 
             Event::KeyDown {
                 keycode: Some(Keycode::W),
                 ..
-            } => dico_events
-                .insert(0xA, true)
-                .expect("Failed to insert key in dico_events"),
+            } => keys_state
+                .update_state(0xA, true),
             Event::KeyUp {
                 keycode: Some(Keycode::W),
                 ..
-            } => dico_events
-                .insert(0xA, false)
-                .expect("Failed to insert key in dico_events"),
+            } => keys_state
+                .update_state(0xA, false),
 
             Event::KeyDown {
                 keycode: Some(Keycode::X),
                 ..
-            } => dico_events
-                .insert(0x0, true)
-                .expect("Failed to insert key in dico_events"),
+            } => keys_state
+                .update_state(0x0, true),
             Event::KeyUp {
                 keycode: Some(Keycode::X),
                 ..
-            } => dico_events
-                .insert(0x0, false)
-                .expect("Failed to insert key in dico_events"),
+            } => keys_state
+                .update_state(0x0, false),
 
             Event::KeyDown {
                 keycode: Some(Keycode::C),
                 ..
-            } => dico_events
-                .insert(0xB, true)
-                .expect("Failed to insert key in dico_events"),
+            } => keys_state
+                .update_state(0xB, true),
             Event::KeyUp {
                 keycode: Some(Keycode::C),
                 ..
-            } => dico_events
-                .insert(0xB, false)
-                .expect("Failed to insert key in dico_events"),
+            } => keys_state
+                .update_state(0xB, false),
 
             Event::KeyDown {
                 keycode: Some(Keycode::V),
                 ..
-            } => dico_events
-                .insert(0xF, true)
-                .expect("Failed to insert key in dico_events"),
+            } => keys_state
+                .update_state(0xF, true),
             Event::KeyUp {
                 keycode: Some(Keycode::V),
                 ..
-            } => dico_events
-                .insert(0xF, false)
-                .expect("Failed to insert key in dico_events"),
+            } => keys_state
+                .update_state(0xF, false),
 
-            _ => true,
+            _ => {}
         };
     }
     Ok(())

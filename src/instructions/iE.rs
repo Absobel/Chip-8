@@ -1,17 +1,16 @@
-use std::collections::HashMap;
-
-use super::super::custom_errors::*;
-use super::super::launch_options::*;
-use super::super::memory::Memory;
+use crate::custom_errors::*;
+use crate::events::KeysState;
+use crate::launch_options::*;
+use crate::memory::Memory;
 
 // 0xEX9E skip next instruction if key with the value of VX is pressed
 // 0xEXA1 skip next instruction if key with the value of VX is not pressed
-pub fn r(instruction: u16, pc: &mut u16, memory: &mut Memory, dico_events: &HashMap<u8, bool>) {
+pub fn r(instruction: u16, pc: &mut u16, memory: &mut Memory, keys_state: &KeysState) {
     let X = ((instruction & 0x0F00) >> 8) as usize;
 
     let VX = memory.read_register(X);
 
-    let is_key_pressed_VX = *(dico_events.get(&VX).expect("VX devrait être dans le dico"));
+    let is_key_pressed_VX = keys_state.read_state(VX);
 
     if instruction & 0x00FF == 0x009E {
         if is_key_pressed_VX {

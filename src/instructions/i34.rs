@@ -1,5 +1,5 @@
-use super::super::launch_options::*;
-use super::super::memory::Memory;
+use crate::launch_options::*;
+use crate::memory::Memory;
 
 // 0x3XNN skip next instruction if VX == NN
 // 0x4XNN skip next instruction if VX != NN

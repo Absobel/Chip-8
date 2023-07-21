@@ -1,6 +1,6 @@
-use super::super::custom_errors::NonUsedInstructionError;
-use super::super::launch_options::*;
-use super::super::memory::Memory;
+use crate::custom_errors::NonUsedInstructionError;
+use crate::launch_options::*;
+use crate::memory::Memory;
 
 pub fn r(
     instruction: u16,
