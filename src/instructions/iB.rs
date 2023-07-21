@@ -1,5 +1,5 @@
-use super::super::launch_options::*;
-use super::super::memory::Memory;
+use crate::launch_options::*;
+use crate::memory::Memory;
 
 pub fn r(instruction: u16, pc: &mut u16, memory: &mut Memory) {
     let NNN = instruction & 0x0FFF;

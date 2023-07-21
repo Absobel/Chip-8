@@ -1,5 +1,5 @@
-use super::super::super::launch_options::*;
-use super::super::super::memory::Memory;
+use crate::launch_options::*;
+use crate::memory::Memory;
 
 pub fn r(instruction: u16, pc: u16, memory: &mut Memory) {
     let X = ((instruction & 0x0F00) >> 8) as usize;

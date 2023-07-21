@@ -1,4 +1,4 @@
-use super::super::launch_options::*;
+use crate::launch_options::*;
 
 // 0x1NNN jump to adress 0xNNN
 pub fn r(instruction: u16, pc: &mut u16) {

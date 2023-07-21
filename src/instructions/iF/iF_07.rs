@@ -1,5 +1,5 @@
-use super::super::super::launch_options::*;
-use super::super::super::memory::Memory;
+use crate::launch_options::*;
+use crate::memory::Memory;
 
 // 0xFX07 set VX to the value of the delay timer
 pub fn r(instruction: u16, pc: u16, memory: &mut Memory) {

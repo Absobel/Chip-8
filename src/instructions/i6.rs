@@ -1,5 +1,5 @@
-use super::super::launch_options::*;
-use super::super::memory::Memory;
+use crate::launch_options::*;
+use crate::memory::Memory;
 
 // 0x6XNN set register VX to 0xNN
 pub fn r(instruction: u16, pc: u16, memory: &mut Memory) {

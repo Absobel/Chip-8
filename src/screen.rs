@@ -1,4 +1,4 @@
-use super::launch_options::*;
+use crate::launch_options::*;
 
 #[derive(Copy, Clone)]
 pub struct Pixel {

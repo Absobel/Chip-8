@@ -1,6 +1,6 @@
-use super::launch_options::*;
-use super::screen;
-use super::screen::Screen;
+use crate::launch_options::*;
+use crate::screen;
+use crate::screen::Screen;
 
 use sdl2::{
     pixels::Color,

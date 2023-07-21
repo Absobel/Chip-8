@@ -1,7 +1,7 @@
-use super::super::custom_errors::*;
-use super::super::display;
-use super::super::launch_options::*;
-use super::super::screen;
+use crate::custom_errors::*;
+use crate::display;
+use crate::launch_options::*;
+use crate::screen;
 
 use sdl2::render::Canvas;
 use sdl2::video::Window;
