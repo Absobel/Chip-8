@@ -17,6 +17,7 @@ This is temporary because there is no menu or anything but you can modify the co
 # TODO
 
 ## Features
+- [ ] Fix lag spikes from SDL2
 - [ ] Add sound
 - [ ] Add a menu
 - [ ] Add a debugger

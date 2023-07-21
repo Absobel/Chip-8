@@ -99,8 +99,17 @@ fn main() {
         .expect("Instruction not implemented");
 
         // To have IPS instructions per second
-        if let Some(time_elapsed) = Duration::from_millis(1000 / IPS).checked_sub(start.elapsed()) {
-            thread::sleep(time_elapsed);
+        let elapsed = start.elapsed();
+        if let Some(time_left_frame) = Duration::from_secs_f64(1.0 / IPS as f64).checked_sub(elapsed) {
+            thread::sleep(time_left_frame);
+        }
+        if DEBUG_PERF {
+            let warning = if Duration::from_secs_f64(1.0 / IPS as f64) < elapsed {
+                "/!\\/!\\/!\\  "
+            } else {
+                ""
+            };
+            println!("{warning}{:?} | {:?}", elapsed, start.elapsed());
         }
     }
 }
