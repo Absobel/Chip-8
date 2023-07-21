@@ -1,4 +1,3 @@
-use super::super::constants::*;
 use super::super::launch_options::*;
 use super::super::memory::Memory;
 
@@ -15,5 +14,5 @@ pub fn r(memory: &mut Memory, pc: u16, instruction: u16) {
         );
     }
 
-    memory.write_word(I_ADR, NNN);
+    memory.write_adress(NNN);
 }

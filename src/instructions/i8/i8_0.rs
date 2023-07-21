@@ -1,4 +1,3 @@
-use super::super::super::constants::*;
 use super::super::super::launch_options::*;
 use super::super::super::memory::Memory;
 
@@ -16,6 +15,6 @@ pub fn r(memory: &mut Memory, pc: u16, instruction: &u16) {
         );
     }
 
-    let VY = memory.read(V_ADR[Y]);
-    memory.write(V_ADR[X], VY);
+    let VY = memory.read_register(Y);
+    memory.write_register(X, VY);
 }

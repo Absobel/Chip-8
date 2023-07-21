@@ -1,4 +1,3 @@
-use super::super::super::constants::*;
 use super::super::super::launch_options::*;
 use super::super::super::memory::Memory;
 
@@ -21,7 +20,7 @@ pub fn r(instruction: u16, pc: &mut u16, memory: &mut Memory, dico_events: &Hash
     }
 
     if key_pressed != 0xFF {
-        memory.write(V_ADR[X], key_pressed);
+        memory.write_register(X, key_pressed);
     } else {
         *pc -= 2;
     }

@@ -1,4 +1,3 @@
-use super::super::constants::*;
 use super::super::launch_options::*;
 use super::super::memory::Memory;
 
@@ -16,5 +15,5 @@ pub fn r(instruction: u16, pc: u16, memory: &mut Memory) {
     let mut rng = rand::thread_rng();
     let random: u8 = rng.gen();
 
-    memory.write(V_ADR[X], random & NN as u8);
+    memory.write_register(X, random & NN as u8);
 }

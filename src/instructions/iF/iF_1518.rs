@@ -1,4 +1,3 @@
-use super::super::super::constants::*;
 use super::super::super::launch_options::*;
 use super::super::super::memory::Memory;
 
@@ -16,7 +15,7 @@ pub fn r(instruction: u16, pc: &mut u16, memory: &mut Memory) {
         );
     }
 
-    let VX = memory.read(V_ADR[X]);
+    let VX = memory.read_register(X);
 
     if instruction & 0x00FF == 0x0015 {
         memory.write_delay_timer(VX);

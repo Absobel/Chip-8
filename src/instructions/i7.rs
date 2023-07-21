@@ -1,4 +1,3 @@
-use super::super::constants::*;
 use super::super::launch_options::*;
 use super::super::memory::Memory;
 
@@ -17,6 +16,6 @@ pub fn r(instruction: u16, pc: u16, memory: &mut Memory) {
         );
     }
 
-    let VX = memory.read(V_ADR[X]) as usize;
-    memory.write(V_ADR[X], (VX + NN) as u8);
+    let VX = memory.read_register(X) as usize;
+    memory.write_register(X, (VX + NN) as u8);
 }

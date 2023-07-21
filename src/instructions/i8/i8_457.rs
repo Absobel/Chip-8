@@ -1,4 +1,3 @@
-use super::super::super::constants::*;
 use super::super::super::launch_options::*;
 use super::super::super::memory::Memory;
 
@@ -6,8 +5,8 @@ pub fn r(instruction: u16, pc: u16, memory: &mut Memory) {
     let X = ((instruction & 0x0F00) >> 8) as usize;
     let Y = ((instruction & 0x00F0) >> 4) as usize;
 
-    let VX = memory.read(V_ADR[X]);
-    let VY = memory.read(V_ADR[Y]);
+    let VX = memory.read_register(X);
+    let VY = memory.read_register(Y);
     match instruction & 0x000F {
         // 0x8XY4 Add VY to VX. VF is set to 1 when there's a carry, and to 0 when there isn't
         4 => {
@@ -21,8 +20,8 @@ pub fn r(instruction: u16, pc: u16, memory: &mut Memory) {
                 );
             }
             let (result, carry) = VX.overflowing_add(VY);
-            memory.write(V_ADR[X], result);
-            memory.write(V_ADR[0xF], carry as u8);
+            memory.write_register(X, result);
+            memory.write_register(0xF, carry as u8);
         }
         // 0x8XY5 Set VX to VX - VY, set VF to 0 when there's a borrow, and 1 when there isn't
         // 0x8XY7           VY - VX
@@ -40,11 +39,11 @@ pub fn r(instruction: u16, pc: u16, memory: &mut Memory) {
             };
             let result = VX as isize - VY as isize;
             if result < 0 {
-                memory.write(V_ADR[0xF], 0);
+                memory.write_register(0xF, 0);
             } else {
-                memory.write(V_ADR[0xF], 1);
+                memory.write_register(0xF, 1);
             }
-            memory.write(V_ADR[X], (result % 255) as u8);
+            memory.write_register(X, (result % 255) as u8);
         }
         _ => unreachable!(),
     }

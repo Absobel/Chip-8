@@ -1,4 +1,3 @@
-use super::super::constants::*;
 use super::super::launch_options::*;
 use super::super::memory::Memory;
 
@@ -17,5 +16,5 @@ pub fn r(instruction: u16, pc: u16, memory: &mut Memory) {
         );
     }
 
-    memory.write(V_ADR[X], NN as u8);
+    memory.write_register(X, NN as u8);
 }

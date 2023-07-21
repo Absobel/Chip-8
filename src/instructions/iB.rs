@@ -1,4 +1,3 @@
-use super::super::constants::*;
 use super::super::launch_options::*;
 use super::super::memory::Memory;
 
@@ -17,7 +16,7 @@ pub fn r(instruction: u16, pc: &mut u16, memory: &mut Memory) {
             );
         }
 
-        let V0 = memory.read(V_ADR[0]);
+        let V0 = memory.read_register(0);
 
         *pc = NNN + V0 as u16;
     } else if CB_B_NN == CB::NEW {
@@ -32,7 +31,7 @@ pub fn r(instruction: u16, pc: &mut u16, memory: &mut Memory) {
             );
         }
 
-        let VX = memory.read(V_ADR[X]);
+        let VX = memory.read_register(X);
 
         *pc = NNN + VX as u16;
     }

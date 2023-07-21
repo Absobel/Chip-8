@@ -1,4 +1,3 @@
-use super::super::constants::*;
 use super::super::custom_errors::NonUsedInstructionError;
 use super::super::launch_options::*;
 use super::super::memory::Memory;
@@ -12,8 +11,8 @@ pub fn r(
     let X = ((instruction & 0x0F00) >> 8) as usize;
     let Y = ((instruction & 0x00F0) >> 4) as usize;
 
-    let VX = memory.read(V_ADR[X]);
-    let VY = memory.read(V_ADR[Y]);
+    let VX = memory.read_register(X);
+    let VY = memory.read_register(Y);
 
     if opcode == 5 || opcode == 9 {
         let condition_met = if opcode == 5 { VX == VY } else { VX != VY };

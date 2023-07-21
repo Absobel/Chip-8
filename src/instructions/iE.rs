@@ -1,6 +1,5 @@
 use std::collections::HashMap;
 
-use super::super::constants::*;
 use super::super::custom_errors::*;
 use super::super::launch_options::*;
 use super::super::memory::Memory;
@@ -10,7 +9,7 @@ use super::super::memory::Memory;
 pub fn r(instruction: u16, pc: &mut u16, memory: &mut Memory, dico_events: &HashMap<u8, bool>) {
     let X = ((instruction & 0x0F00) >> 8) as usize;
 
-    let VX = memory.read(V_ADR[X]);
+    let VX = memory.read_register(X);
 
     let is_key_pressed_VX = *(dico_events.get(&VX).expect("VX devrait être dans le dico"));
 

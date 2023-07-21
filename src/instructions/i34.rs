@@ -1,4 +1,3 @@
-use super::super::constants::*;
 use super::super::launch_options::*;
 use super::super::memory::Memory;
 
@@ -8,7 +7,7 @@ pub fn r(instruction: u16, pc: &mut u16, memory: &mut Memory, opcode: u16) {
     let X = ((instruction & 0x0F00) >> 8) as usize;
     let NN = (instruction & 0x00FF) as usize;
 
-    let VX = memory.read(V_ADR[X]);
+    let VX = memory.read_register(X);
 
     if DEBUG {
         match (opcode, VX == NN as u8) {
