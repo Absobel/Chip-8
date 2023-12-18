@@ -3,17 +3,18 @@ mod constants;
 mod custom_errors;
 mod display;
 mod events;
-mod instruction_executioner;
+mod instructions;
 mod launch_options;
 mod memory;
 mod screen;
+mod audio;
 
 use constants::*;
 use launch_options::*;
 
 use std::{
     thread,
-    time::{Duration, Instant},
+    time::{Duration, Instant}, sync::{Arc, atomic::{AtomicBool, Ordering}},
 };
 
 fn load_font(memory: &mut memory::Memory) {
@@ -59,13 +60,18 @@ fn main() {
     thread::spawn(move || {
         let _ = &ptr_mem_sound;
         let memory = unsafe { &mut *ptr_mem_sound.0 };
+        let condition = Arc::new(AtomicBool::new(false));
+        let condition_clone = condition.clone();
+        thread::spawn(move || {audio::play_beep(condition_clone);});
         loop {
             let timer = memory.read_sound_timer();
             if timer > 0 {
-                // TODO: add beep
+                condition.store(true, Ordering::Relaxed);
                 memory.decrement_sound_timer();
 
                 thread::sleep(Duration::from_millis(16));
+            } else {
+                condition.store(false, Ordering::Relaxed);
             }
         }
     });
@@ -85,7 +91,7 @@ fn main() {
             break;
         }
 
-        instruction_executioner::decode(
+        instructions::decode(
             &mut pc,
             &mut stack,
             &mut screen,

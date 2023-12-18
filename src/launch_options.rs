@@ -8,9 +8,9 @@ pub const ROM_PATH: &str = "roms/autre/INVADERS";
 
 pub const IPS: u64 = 700; // instructions per second
 
-pub const DEBUG: bool = true;
+pub const DEBUG: bool = false;
 pub const DEBUG_VERBOSE: bool = false;
-pub const DEBUG_PERF: bool = true;
+pub const DEBUG_PERF: bool = false;
 
 pub const PIXEL_ON: (u8, u8, u8) = (0x21, 0x31, 0x34);
 pub const PIXEL_OFF: (u8, u8, u8) = (0xFF, 0xFF, 0xFF);
