@@ -43,178 +43,146 @@ pub fn update(sdl_context: &Sdl, keys_state: &mut KeysState) -> Result<(), QuitG
             Event::KeyDown {
                 keycode: Some(Keycode::Num1),
                 ..
-            } => keys_state
-                .update_state(0x1, true),
+            } => keys_state.update_state(0x1, true),
             Event::KeyUp {
                 keycode: Some(Keycode::Num1),
                 ..
-            } => keys_state
-                .update_state(0x1, false),
+            } => keys_state.update_state(0x1, false),
 
             Event::KeyDown {
                 keycode: Some(Keycode::Num2),
                 ..
-            } => keys_state
-                .update_state(0x2, true),
+            } => keys_state.update_state(0x2, true),
             Event::KeyUp {
                 keycode: Some(Keycode::Num2),
                 ..
-            } => keys_state
-                .update_state(0x2, false),
+            } => keys_state.update_state(0x2, false),
 
             Event::KeyDown {
                 keycode: Some(Keycode::Num3),
                 ..
-            } => keys_state
-                .update_state(0x3, true),
+            } => keys_state.update_state(0x3, true),
             Event::KeyUp {
                 keycode: Some(Keycode::Num3),
                 ..
-            } => keys_state
-                .update_state(0x3, false),
+            } => keys_state.update_state(0x3, false),
 
             Event::KeyDown {
                 keycode: Some(Keycode::Num4),
                 ..
-            } => keys_state
-                .update_state(0xC, true),
+            } => keys_state.update_state(0xC, true),
             Event::KeyUp {
                 keycode: Some(Keycode::Num4),
                 ..
-            } => keys_state
-                .update_state(0xC, false),
+            } => keys_state.update_state(0xC, false),
 
             Event::KeyDown {
                 keycode: Some(Keycode::A),
                 ..
-            } => keys_state
-                .update_state(0x4, true),
+            } => keys_state.update_state(0x4, true),
             Event::KeyUp {
                 keycode: Some(Keycode::A),
                 ..
-            } => keys_state
-                .update_state(0x4, false),
+            } => keys_state.update_state(0x4, false),
 
             Event::KeyDown {
                 keycode: Some(Keycode::Z),
                 ..
-            } => keys_state
-                .update_state(0x5, true),
+            } => keys_state.update_state(0x5, true),
             Event::KeyUp {
                 keycode: Some(Keycode::Z),
                 ..
-            } => keys_state
-                .update_state(0x5, false),
+            } => keys_state.update_state(0x5, false),
 
             Event::KeyDown {
                 keycode: Some(Keycode::E),
                 ..
-            } => keys_state
-                .update_state(0x6, true),
+            } => keys_state.update_state(0x6, true),
             Event::KeyUp {
                 keycode: Some(Keycode::E),
                 ..
-            } => keys_state
-                .update_state(0x6, false),
+            } => keys_state.update_state(0x6, false),
 
             Event::KeyDown {
                 keycode: Some(Keycode::R),
                 ..
-            } => keys_state
-                .update_state(0xD, true),
+            } => keys_state.update_state(0xD, true),
             Event::KeyUp {
                 keycode: Some(Keycode::R),
                 ..
-            } => keys_state
-                .update_state(0xD, false),
+            } => keys_state.update_state(0xD, false),
 
             Event::KeyDown {
                 keycode: Some(Keycode::Q),
                 ..
-            } => keys_state
-                .update_state(0x7, true),
+            } => keys_state.update_state(0x7, true),
             Event::KeyUp {
                 keycode: Some(Keycode::Q),
                 ..
-            } => keys_state
-                .update_state(0x7, false),
+            } => keys_state.update_state(0x7, false),
 
             Event::KeyDown {
                 keycode: Some(Keycode::S),
                 ..
-            } => keys_state
-                .update_state(0x8, true),
+            } => keys_state.update_state(0x8, true),
             Event::KeyUp {
                 keycode: Some(Keycode::S),
                 ..
-            } => keys_state
-                .update_state(0x8, false),
+            } => keys_state.update_state(0x8, false),
 
             Event::KeyDown {
                 keycode: Some(Keycode::D),
                 ..
-            } => keys_state
-                .update_state(0x9, true),
+            } => keys_state.update_state(0x9, true),
             Event::KeyUp {
                 keycode: Some(Keycode::D),
                 ..
-            } => keys_state
-                .update_state(0x9, false),
+            } => keys_state.update_state(0x9, false),
 
             Event::KeyDown {
                 keycode: Some(Keycode::F),
                 ..
-            } => keys_state
-                .update_state(0xE, true),
+            } => keys_state.update_state(0xE, true),
             Event::KeyUp {
                 keycode: Some(Keycode::F),
                 ..
-            } => keys_state
-                .update_state(0xE, false),
+            } => keys_state.update_state(0xE, false),
 
             Event::KeyDown {
                 keycode: Some(Keycode::W),
                 ..
-            } => keys_state
-                .update_state(0xA, true),
+            } => keys_state.update_state(0xA, true),
             Event::KeyUp {
                 keycode: Some(Keycode::W),
                 ..
-            } => keys_state
-                .update_state(0xA, false),
+            } => keys_state.update_state(0xA, false),
 
             Event::KeyDown {
                 keycode: Some(Keycode::X),
                 ..
-            } => keys_state
-                .update_state(0x0, true),
+            } => keys_state.update_state(0x0, true),
             Event::KeyUp {
                 keycode: Some(Keycode::X),
                 ..
-            } => keys_state
-                .update_state(0x0, false),
+            } => keys_state.update_state(0x0, false),
 
             Event::KeyDown {
                 keycode: Some(Keycode::C),
                 ..
-            } => keys_state
-                .update_state(0xB, true),
+            } => keys_state.update_state(0xB, true),
             Event::KeyUp {
                 keycode: Some(Keycode::C),
                 ..
-            } => keys_state
-                .update_state(0xB, false),
+            } => keys_state.update_state(0xB, false),
 
             Event::KeyDown {
                 keycode: Some(Keycode::V),
                 ..
-            } => keys_state
-                .update_state(0xF, true),
+            } => keys_state.update_state(0xF, true),
             Event::KeyUp {
                 keycode: Some(Keycode::V),
                 ..
-            } => keys_state
-                .update_state(0xF, false),
+            } => keys_state.update_state(0xF, false),
 
             _ => {}
         };

@@ -4,7 +4,6 @@ mod custom_errors;
 mod display;
 mod events;
 mod instruction_executioner;
-mod instructions;
 mod launch_options;
 mod memory;
 mod screen;
@@ -54,7 +53,6 @@ fn main() {
                 memory.decrement_delay_timer();
 
                 thread::sleep(Duration::from_millis(16));
-            } else {
             }
         }
     });
@@ -68,7 +66,6 @@ fn main() {
                 memory.decrement_sound_timer();
 
                 thread::sleep(Duration::from_millis(16));
-            } else {
             }
         }
     });
@@ -100,7 +97,9 @@ fn main() {
 
         // To have IPS instructions per second
         let elapsed = start.elapsed();
-        if let Some(time_left_frame) = Duration::from_secs_f64(1.0 / IPS as f64).checked_sub(elapsed) {
+        if let Some(time_left_frame) =
+            Duration::from_secs_f64(1.0 / IPS as f64).checked_sub(elapsed)
+        {
             thread::sleep(time_left_frame);
         }
         if DEBUG_PERF {
