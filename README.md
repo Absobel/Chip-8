@@ -18,8 +18,7 @@ This is temporary because there is no menu or anything but you can modify the co
 
 ## Features
 - Add proper logging
-- Fix lag spikes
-- Add sound
+- Fix lag when too much things happening on screen
 - Add a menu
 - Add a debugger
 
