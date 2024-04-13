@@ -17,12 +17,12 @@ This is temporary because there is no menu or anything but you can modify the co
 # TODO
 
 ## Features
-- Add proper logging
-- Fix lag when too much things happening on screen
-- Add a menu
-- Add a debugger
+[ ] Add proper logging
+[ ] Fix lag when too much things happening on screen
+[ ] Add an UI
+[ ] Add a debugger
 
 # Implementation
-- stack: Vec -> Array
-- Remove unsafe
-- Unit tests
+[ ] stack: Vec -> Array
+[ ] Remove unsafe
+[ ] Unit tests

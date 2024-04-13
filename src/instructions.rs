@@ -10,8 +10,6 @@ use crate::memory::Memory;
 use crate::screen::Screen;
 use crate::{display, screen};
 
-// TODO : Move documentation to funcitons
-
 pub fn decode(
     pc: &mut u16,
     stack: &mut Vec<u16>,
